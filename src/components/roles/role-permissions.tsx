@@ -11,7 +11,8 @@ import {
   ShieldAlert,
   Save
 } from 'lucide-react';
-import { useRolesQuery, useRolePermissionsQuery, useUpdatePermissionsMutation } from '@/hooks/roles';
+import { useRolePermissionsQuery, useUpdatePermissionsMutation } from '@/hooks/roles';
+import { useRolesDropdownQuery } from '@/hooks/dropdowns';
 import { Permission, ModuleWithPermissions } from '@/types/admin.types';
 
 export const RolePermissionsMapping = () => {
@@ -21,13 +22,13 @@ export const RolePermissionsMapping = () => {
   const [localPermissions, setLocalPermissions] = useState<Record<string, boolean>>({});
 
   // Fetch Roles for the dropdown
-  const { data: rolesResponse } = useRolesQuery({ page: 1, limit: 100 });
-  const roles = rolesResponse?.data?.roles || [];
+  const { data: rolesResponse } = useRolesDropdownQuery();
+  const roles = rolesResponse?.data?.rolesDropdown || [];
 
   // Set initial role if roles exist
   useEffect(() => {
     if (roles.length > 0 && !selectedRoleId) {
-      setSelectedRoleId(roles[0].id);
+      setSelectedRoleId(roles[0].value);
     }
   }, [roles, selectedRoleId]);
 
@@ -109,7 +110,7 @@ export const RolePermissionsMapping = () => {
             >
               <option value="" disabled>Select a role...</option>
               {roles.map(r => (
-                <option key={r.id} value={r.id}>{r.title}</option>
+                <option key={r.value} value={r.value}>{r.label}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8a95a5] pointer-events-none" />
@@ -120,7 +121,7 @@ export const RolePermissionsMapping = () => {
               <h4 className="text-[16px] font-bold text-[#2e3a49]">Role Permissions</h4>
               <p className="text-[12px] text-[#8a95a5] mt-1">
                 Currently editing permissions for: <span className="text-[#2e4fd5] font-semibold">
-                  {roles.find(r => r.id === selectedRoleId)?.title || '...'}
+                  {roles.find(r => r.value === selectedRoleId)?.label || '...'}
                 </span>
               </p>
             </div>
