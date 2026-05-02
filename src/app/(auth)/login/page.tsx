@@ -3,11 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, Check } from 'lucide-react';
+import { useLoginMutation } from '@/hooks/auth';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(false);
-  const router = useRouter();
+  const [email, setEmail] = useState('admin@saaspos.com'); // Updated default email
+  const [password, setPassword] = useState('');
+  
+  const loginMutation = useLoginMutation();
+
+  const handleLogin = async () => {
+    loginMutation.mutate({ email, password });
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f8fafc] px-6 py-8 text-[#3d4652]">
@@ -39,6 +47,8 @@ export default function LoginPage() {
                 </div>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="h-11 w-full rounded-[4px] border border-[#d9e3ec] bg-[#dfeaf3] pl-10 pr-3 text-[14px] text-[#55606d] placeholder:text-[#9aa7b4] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/20"
                   placeholder="admin@axiom.enterprise"
                 />
@@ -60,6 +70,8 @@ export default function LoginPage() {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="h-11 w-full rounded-[4px] border border-[#d9e3ec] bg-[#dfeaf3] pl-10 pr-12 text-[14px] text-[#55606d] placeholder:text-[#7f8a96] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/20"
                   placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
                 />
@@ -91,7 +103,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => router.push('/dashboard')}
+              onClick={handleLogin}
               className="flex h-[46px] w-full items-center justify-center gap-2 rounded-[4px] bg-[#3758d5] px-4 text-[15px] font-semibold text-white shadow-[0_10px_24px_rgba(55,88,213,0.32)] transition hover:bg-[#2f4fca]"
             >
               <Check className="h-4 w-4 fill-white text-white" strokeWidth={3} />

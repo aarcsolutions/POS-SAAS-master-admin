@@ -1,8 +1,10 @@
+import { TenantList } from "@/components/tenants/tenant-list";
+
+export const metadata = {
+  title: 'Tenant Management - Pos-ms',
+  description: 'Tenant oversight and infrastructure compliance monitoring',
+};
+
 export default function TenantsPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Tenants</h1>
-      {/* Tenants list */}
-    </div>
-  );
+  return <TenantList />;
 }
