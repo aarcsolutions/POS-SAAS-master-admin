@@ -89,7 +89,7 @@ export default function PermissionsListPage() {
   }
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+    <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -147,7 +147,13 @@ export default function PermissionsListPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_PERMISSIONS.map((perm) => (
+            {MOCK_PERMISSIONS.filter((perm) =>
+              !searchTerm ||
+              perm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              perm.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              perm.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              perm.description.toLowerCase().includes(searchTerm.toLowerCase())
+            ).map((perm) => (
               <tr key={perm.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">

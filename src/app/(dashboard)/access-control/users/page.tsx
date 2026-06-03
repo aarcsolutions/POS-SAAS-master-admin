@@ -84,7 +84,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+    <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -120,15 +120,15 @@ export default function UsersPage() {
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]">
           <Filter className="h-4 w-4" />
-          More Filters
+          Filters
         </button>
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-xl border border-[#eef2f6] overflow-hidden shadow-sm mb-6 text-[13px]">
+      <div className="bg-white rounded-xl border border-[#eef2f6] overflow-hidden shadow-sm mb-6 text-[14px]">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-[#fcfdfe] border-b border-[#f1f5f9] text-[11px] font-bold text-[#94a3b4] uppercase tracking-wider">
+            <tr className="bg-[#fcfdfe] border-b border-[#f1f5f9] text-[12px] font-bold text-[#94a3b4] uppercase tracking-wider">
               <th className="px-6 py-4">Full Name</th>
               <th className="px-6 py-4">Email</th>
               <th className="px-6 py-4">Role</th>
@@ -138,11 +138,16 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_USERS.map((user) => (
+            {MOCK_USERS.filter((user) =>
+              !searchTerm ||
+              user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              user.role.toLowerCase().includes(searchTerm.toLowerCase())
+            ).map((user) => (
               <tr key={user.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-slate-400 to-slate-600 text-white font-bold text-[13px] shadow-sm overflow-hidden group-hover:from-[#3758d5] group-hover:to-[#2e4fd5] transition-all">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-slate-400 to-slate-600 text-white font-bold text-[14px] shadow-sm overflow-hidden group-hover:from-[#3758d5] group-hover:to-[#2e4fd5] transition-all">
                       {user.avatar}
                     </div>
                     <span className="font-bold text-[#2e3a49] text-[14px] group-hover:text-[#2e4fd5] transition-colors">{user.name}</span>
@@ -150,7 +155,7 @@ export default function UsersPage() {
                 </td>
                 <td className="px-6 py-5 text-[#55606d]">{user.email}</td>
                 <td className="px-6 py-5">
-                  <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${getRoleStyle(user.role)}`}>
+                  <span className={`px-2.5 py-1 rounded-md font-bold text-[11px] uppercase tracking-wider ${getRoleStyle(user.role)}`}>
                     {user.role}
                   </span>
                 </td>
@@ -166,9 +171,9 @@ export default function UsersPage() {
                     <summary className="inline-flex list-none cursor-pointer items-center justify-center rounded-md p-1.5 text-[#94a3b4] hover:bg-[#f1f5f9] transition-all">
                       <MoreHorizontal className="h-4 w-4" />
                     </summary>
-                    <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-md border border-[#e6edf5] bg-white py-1 text-[13px] shadow-[0_16px_40px_rgba(30,64,120,0.12)] text-left">
+                    <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-md border border-[#e6edf5] bg-white py-1 text-[14px] shadow-[0_16px_40px_rgba(30,64,120,0.12)] text-left">
                       <button onClick={() => handleOpenForm('view', user)} className="flex items-center gap-2 w-full px-4 py-2.5 text-[#2e3a49] hover:bg-[#f6f9fd] hover:text-[#1f2a37] font-medium">
-                        <Eye className="h-4 w-4 text-[#8a95a5]" /> View
+                        <Eye className="h-4 w-4 text-[#8a95a5]" /> View Details
                       </button>
                       <button onClick={() => handleOpenForm('edit', user)} className="flex items-center gap-2 w-full px-4 py-2.5 text-[#2e3a49] hover:bg-[#f6f9fd] hover:text-[#1f2a37] font-medium">
                         <Pencil className="h-4 w-4 text-[#8a95a5]" /> Edit
@@ -187,7 +192,7 @@ export default function UsersPage() {
       </div>
 
       {/* Pagination Section */}
-      <div className="flex items-center justify-between text-[13px] text-[#94a3b4]">
+      <div className="flex items-center justify-between text-[14px] text-[#94a3b4]">
         <div>Showing 1-{MOCK_USERS.length} of 1,284 users</div>
         <div className="flex items-center gap-2">
           <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all">

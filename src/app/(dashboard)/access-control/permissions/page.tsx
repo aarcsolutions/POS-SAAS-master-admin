@@ -17,7 +17,7 @@ import {
   UserCheck,
   CreditCard,
   Settings,
-  Monitor,
+  Eye,
   Pencil
 } from 'lucide-react';
 import { PermissionForm } from '@/components/permissions/permission-form';
@@ -39,7 +39,7 @@ const MOCK_PERMISSIONS: PermissionItem[] = [
   { id: '5', name: 'billing.invoice.generate', module: 'Billing', action: 'CREATE', description: 'Create manual billing invoices.', icon: CreditCard },
   { id: '6', name: 'stock.inventory.adjust', module: 'Inventory', action: 'UPDATE', description: 'Manually adjust product stock levels.', icon: Database },
   { id: '7', name: 'backup.system.create', module: 'Maintenance', action: 'CREATE', description: 'Trigger manual system data backup.', icon: Settings },
-  { id: '8', name: 'api.endpoint.configure', module: 'System', action: 'UPDATE', description: 'Configure external API integration points.', icon: Monitor }
+  { id: '8', name: 'api.endpoint.configure', module: 'System', action: 'UPDATE', description: 'Configure external API integration points.', icon: Eye }
 ];
 
 export default function PermissionsListPage() {
@@ -89,7 +89,7 @@ export default function PermissionsListPage() {
   }
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+    <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -135,10 +135,10 @@ export default function PermissionsListPage() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-xl border border-[#eef2f6] shadow-sm overflow-hidden mb-6 text-[13px]">
+      <div className="bg-white rounded-xl border border-[#eef2f6] shadow-sm overflow-hidden mb-6 text-[14px]">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-[#fcfdfe] border-b border-[#f1f5f9] text-[11px] font-bold text-[#94a3b4] uppercase tracking-wider">
+            <tr className="bg-[#fcfdfe] border-b border-[#f1f5f9] text-[12px] font-bold text-[#94a3b4] uppercase tracking-wider">
               <th className="px-6 py-4">Permission Name</th>
               <th className="px-6 py-4">Module</th>
               <th className="px-6 py-4">Action</th>
@@ -147,7 +147,13 @@ export default function PermissionsListPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_PERMISSIONS.map((perm) => (
+            {MOCK_PERMISSIONS.filter((perm) =>
+              !searchTerm ||
+              perm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              perm.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              perm.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              perm.description.toLowerCase().includes(searchTerm.toLowerCase())
+            ).map((perm) => (
               <tr key={perm.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
@@ -158,12 +164,12 @@ export default function PermissionsListPage() {
                   </div>
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-tight ${getModuleColor(perm.module)}`}>
+                  <span className={`px-2.5 py-1 rounded-md font-bold text-[11px] uppercase tracking-tight ${getModuleColor(perm.module)}`}>
                     {perm.module}
                   </span>
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] border ${getActionColor(perm.action)}`}>
+                  <span className={`px-2.5 py-1 rounded-md font-bold text-[11px] border ${getActionColor(perm.action)}`}>
                     {perm.action}
                   </span>
                 </td>
@@ -175,9 +181,9 @@ export default function PermissionsListPage() {
                     <summary className="inline-flex list-none cursor-pointer items-center justify-center rounded-md p-1.5 text-[#94a3b4] hover:bg-[#f1f5f9] transition-all">
                       <MoreHorizontal className="h-4 w-4" />
                     </summary>
-                    <div className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-md border border-[#e6edf5] bg-white py-1 text-[13px] shadow-[0_16px_40px_rgba(30,64,120,0.12)] text-left">
+                    <div className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-md border border-[#e6edf5] bg-white py-1 text-[14px] shadow-[0_16px_40px_rgba(30,64,120,0.12)] text-left">
                       <button onClick={() => handleOpenForm('view', perm)} className="flex items-center gap-2 w-full px-4 py-2.5 text-[#2e3a49] hover:bg-[#f6f9fd] hover:text-[#1f2a37] font-medium">
-                        <Monitor className="h-4 w-4 text-[#8a95a5]" /> View Details
+                        <Eye className="h-4 w-4 text-[#8a95a5]" /> View Details
                       </button>
                       <button onClick={() => handleOpenForm('edit', perm)} className="flex items-center gap-2 w-full px-4 py-2.5 text-[#2e3a49] hover:bg-[#f6f9fd] hover:text-[#1f2a37] font-medium">
                         <Pencil className="h-4 w-4 text-[#8a95a5]" /> Edit Permission
@@ -196,7 +202,7 @@ export default function PermissionsListPage() {
       </div>
 
       {/* Pagination Section */}
-      <div className="flex items-center justify-between text-[13px] text-[#94a3b4]">
+      <div className="flex items-center justify-between text-[14px] text-[#94a3b4]">
         <div>Showing 1 to {MOCK_PERMISSIONS.length} of 124 results</div>
         <div className="flex items-center gap-2">
           <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all">

@@ -7,6 +7,7 @@ import { ADMIN_LINK_PERM } from '@/rbac/link-permissions';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { useLogoutMutation } from '@/hooks/auth';
+import { getSidebarModules } from '@/data/mockSidebarData';
 
 export default function DashboardLayout({
   children,
@@ -50,7 +51,7 @@ export default function DashboardLayout({
             <div className="text-[11px] font-medium text-[#94a3b4]">Master Control</div>
           </div>
           <nav className="space-y-1 text-[14px]">
-            {modulesWithPermisssions.map((module) => {
+            {getSidebarModules().map((module) => {
               const slug = module.module_slug;
               const config = SIDEBAR_CONFIG[slug as keyof typeof SIDEBAR_CONFIG] || SIDEBAR_CONFIG.default;
               
@@ -94,7 +95,7 @@ export default function DashboardLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Navbar */}
         <header className="sticky top-0 z-10 border-b border-[#e7edf5] bg-white/90 backdrop-blur-sm">
-          <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between px-6">
+          <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between px-8">
             <div className="relative w-[520px]">
               <input
                 placeholder="Search businesses, transactions, or logs..."
@@ -119,7 +120,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="mx-auto w-full max-w-[1200px] flex-1 overflow-auto px-6 py-6">
+        <main className="mx-auto w-full max-w-[1600px] flex-1 overflow-auto px-8 py-6">
           {children}
         </main>
       </div>

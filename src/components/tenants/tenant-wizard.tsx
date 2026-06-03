@@ -141,23 +141,17 @@ export const TenantWizard: React.FC<TenantWizardProps> = ({ onClose, mode = 'cre
   return (
     <div className={`max-w-[1200px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 ${isViewOnly ? 'pointer-events-none opacity-95' : ''}`}>
       
-      <div className="flex justify-between items-end mb-8 border-b border-[#eef2f6] pb-6 bg-white p-6 rounded-2xl shadow-sm">
+      <div className="flex justify-between items-start mb-8">
         <div className={isViewOnly ? 'pointer-events-auto' : ''}>
-          <div className="flex items-center gap-2 text-[#94a3b4] font-semibold text-[13px] mb-2">
-            Tenant Management <span className="text-[#e2e8f0]">/</span> <span className="text-[#3758d5]">{mode.toUpperCase()}</span>
-          </div>
-          <div className="flex items-center gap-3">
-             {isViewOnly ? <Eye className="w-8 h-8 text-[#2e4fd5]" /> : isEditMode ? <Settings className="w-8 h-8 text-[#2e4fd5]" /> : <Sparkles className="w-8 h-8 text-[#2e4fd5]" />}
-             <h1 className="text-[28px] font-extrabold text-[#2e3a49] tracking-tight">{headerTitle}</h1>
-          </div>
-          <p className="text-[#64748b] text-[14px] mt-1 font-medium ml-11">{headerSubtitle}</p>
+          <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-[#2e3a49]">{headerTitle}</h1>
+          <p className="mt-1 max-w-3xl text-[13px] text-[#7a8594]">{headerSubtitle}</p>
         </div>
-        <button 
-          onClick={handleCancelClick} 
-          disabled={isSubmitting} 
-          className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#64748b] rounded-xl font-bold text-[13px] hover:bg-[#f8fafc] transition-all shadow-sm pointer-events-auto"
+        <button
+          onClick={handleCancelClick}
+          disabled={isSubmitting}
+          className="rounded-md bg-[#e5edf5] px-4 py-2 text-[13px] font-semibold text-[#516276] hover:bg-[#dfe7ef] pointer-events-auto"
         >
-          {isViewOnly ? 'Close' : 'Cancel Setup'}
+          {isViewOnly ? 'Close' : 'Cancel'}
         </button>
       </div>
 
@@ -469,17 +463,17 @@ export const TenantWizard: React.FC<TenantWizardProps> = ({ onClose, mode = 'cre
           </div>
 
           {/* Footer Controls */}
-          <div className="pt-6 border-t border-[#f1f5f9] flex justify-between items-center mt-8 pointer-events-auto">
-            <button 
+          <div className="pt-4 border-t border-[#f1f5f9] flex justify-between items-center mt-6 pointer-events-auto">
+            <button
               onClick={prevStep}
               disabled={isFirstStep || isSubmitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-[13px] text-[#64748b] hover:bg-[#f1f5f9] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-md bg-[#e5edf5] px-4 py-2 text-[13px] font-semibold text-[#516276] hover:bg-[#dfe7ef] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            
+
             {!isLastStep ? (
-              <button 
+              <button
                 onClick={() => {
                   if (currentStep === 1 && !formData.tenantName) return notifyError('Required Field', 'Tenant Name is mandatory.');
                   if (currentStep === 2 && (!formData.adminEmail || !formData.adminPassword)) return notifyError('Required Field', 'Admin Credentials are mandatory.');
@@ -488,17 +482,16 @@ export const TenantWizard: React.FC<TenantWizardProps> = ({ onClose, mode = 'cre
                   nextStep();
                 }}
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-[14px] bg-[#2e4fd5] shadow-[#2e4fd5]/20 hover:bg-[#2541c0] text-white shadow-sm transition-all active:scale-95 disabled:opacity-70"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-[#2e4fd5] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_10px_24px_rgba(55,88,213,0.28)] hover:bg-[#2447d3] transition-all active:scale-95 disabled:opacity-70"
               >
                 Continue <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
               !isViewOnly && (
-                <button 
+                <button
                   onClick={() => handleComplete(formData)}
                   disabled={isSubmitting || (isEditMode && !isDirty)}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-[14px] shadow-sm transition-all active:scale-95 disabled:opacity-70
-                    ${isEditMode ? 'bg-[#3758d5] hover:bg-[#2e4fd5] text-white' : 'bg-[#10b981] hover:bg-[#059669] text-white'}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-[#2e4fd5] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_10px_24px_rgba(55,88,213,0.28)] hover:bg-[#2447d3] transition-all active:scale-95 disabled:opacity-70"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : isEditMode ? <Save className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                   {isSubmitting ? 'Processing...' : isEditMode ? 'Save Changes' : 'Launch Tenant'}

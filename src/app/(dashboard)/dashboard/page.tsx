@@ -19,15 +19,15 @@ export default function DashboardPage() {
         ].map((c, idx) => (
           <div key={idx} className="rounded-xl border border-[#e7edf5] bg-white p-5 shadow-[0_16px_40px_rgba(30,64,120,0.06)]">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#8a95a5]">{c.label}</span>
+              <span className="text-[13px] font-bold uppercase tracking-[0.12em] text-[#8a95a5]">{c.label}</span>
               <c.icon className="h-4 w-4 text-[#8a95a5]" />
             </div>
             <div className="flex items-end justify-between">
               <div className="text-[28px] font-semibold text-[#263443]">{c.value}</div>
               {c.sub ? (
-                <div className="text-right text-[12px] text-[#6e7b8a]">{c.sub}</div>
+                <div className="text-right text-[13px] text-[#6e7b8a]">{c.sub}</div>
               ) : (
-                <div className="flex items-center gap-1 text-[12px] text-[#14b87a]">
+                <div className="flex items-center gap-1 text-[13px] text-[#14b87a]">
                   <ArrowUpRight className="h-4 w-4" /> {c.delta}
                 </div>
               )}
@@ -41,11 +41,11 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between px-5 pt-5">
           <div>
             <h3 className="text-[15px] font-semibold text-[#2e3a49]">Platform Growth</h3>
-            <p className="text-[12px] text-[#8a95a5]">Tenant onboarding vs. revenue scaling (6M window)</p>
+            <p className="text-[13px] text-[#8a95a5]">Tenant onboarding vs. revenue scaling (6M window)</p>
           </div>
           <div className="flex gap-2">
-            <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-[11px] font-semibold text-[#4053d3]">Revenue</span>
-            <span className="rounded-full bg-[#e9f2ff] px-3 py-1 text-[11px] font-semibold text-[#2e7bd5]">Tenants</span>
+            <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-[12px] font-semibold text-[#4053d3]">Revenue</span>
+            <span className="rounded-full bg-[#e9f2ff] px-3 py-1 text-[12px] font-semibold text-[#2e7bd5]">Tenants</span>
           </div>
         </div>
         <div className="mt-4 h-[280px] w-full">
@@ -70,7 +70,7 @@ export default function DashboardPage() {
       <div className="rounded-xl border border-[#e7edf5] bg-white shadow-[0_16px_40px_rgba(30,64,120,0.06)]">
         <div className="flex items-center justify-between px-5 py-4">
           <h3 className="text-[15px] font-semibold text-[#2e3a49]">Tenant Performance</h3>
-          <div className="flex items-center gap-3 text-[12px] text-[#6e7b8a]">
+          <div className="flex items-center gap-3 text-[13px] text-[#6e7b8a]">
             <button className="rounded-md border border-[#e7edf5] bg-[#f6f9fd] px-3 py-1">All Tiers</button>
             <button className="rounded-md border border-[#e7edf5] bg-white px-3 py-1">Export Data</button>
           </div>
@@ -83,28 +83,28 @@ export default function DashboardPage() {
           ].map((t, i) => (
             <div key={i} className="grid grid-cols-12 items-center px-5 py-4">
               <div className="col-span-5 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#eef2ff] text-[12px] font-bold text-[#4053d3]">{t.badge}</div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#eef2ff] text-[13px] font-bold text-[#4053d3]">{t.badge}</div>
                 <div>
                   <div className="text-[14px] font-semibold text-[#2e3a49]">{t.name}</div>
-                  <div className="text-[12px] text-[#8a95a5]">{t.id}</div>
+                  <div className="text-[13px] text-[#8a95a5]">{t.id}</div>
                 </div>
               </div>
               <div className="col-span-2">
-                <span className="rounded-md bg-[#eef2ff] px-2 py-1 text-[11px] font-semibold text-[#4053d3]">{t.plan}</span>
+                <span className="rounded-md bg-[#eef2ff] px-2 py-1 text-[12px] font-semibold text-[#4053d3]">{t.plan}</span>
               </div>
-              <div className="col-span-2 text-[13px] text-[#475569]">{t.date}</div>
-              <div className="col-span-2 text-[13px] text-[#475569]">{t.volume}</div>
+              <div className="col-span-2 text-[14px] text-[#475569]">{t.date}</div>
+              <div className="col-span-2 text-[14px] text-[#475569]">{t.volume}</div>
               <div className="col-span-1 flex items-center gap-2">
                 <div className="h-1.5 w-20 rounded-full bg-[#e6eef7]">
                   <div className="h-1.5 rounded-full bg-[#2e4fd5]" style={{ width: `${t.health}%` }} />
                 </div>
-                <span className="text-[12px] text-[#6e7b8a]">{t.health}%</span>
+                <span className="text-[13px] text-[#6e7b8a]">{t.health}%</span>
                 <button className="ml-auto text-[#9aa7b4]"><MoreHorizontal className="h-4 w-4" /></button>
               </div>
             </div>
           ))}
         </div>
-        <div className="border-t border-[#eef2f7] px-5 py-3 text-[11px] text-[#8593a3]">Showing 3 of 1,429 tenants</div>
+        <div className="border-t border-[#eef2f7] px-5 py-3 text-[12px] text-[#8593a3]">Showing 3 of 1,429 tenants</div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ interface SubscriptionFormProps {
   initialData?: any;
   onClose: () => void;
   onSubmit?: (data: any) => void;
+  onSuccess?: (data: any) => void;
 }
 
 const ENTITLEMENTS = [
@@ -22,7 +23,7 @@ const ENTITLEMENTS = [
   'Custom API Webhooks'
 ];
 
-export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initialData, onClose, onSubmit }) => {
+export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initialData, onClose, onSubmit, onSuccess }) => {
   const isReadOnly = mode === 'view';
   const { setDraft, getDraft, clearDraft } = useFormDraftStore();
   const { setHasUnsavedChanges } = useUIStore();
@@ -80,6 +81,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
     try {
       await new Promise(resolve => setTimeout(resolve, 800)); // Premium feel
       if (onSubmit) onSubmit(formData);
+      if (onSuccess) onSuccess(formData);
       clearDraft(FORM_ID);
       notifySuccess(
         mode === 'create' ? 'Subscription Plan Created' : 'Subscription Plan Updated', 
@@ -104,34 +106,31 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
   };
 
   return (
-    <div className="bg-white min-h-full">
-      <form onSubmit={handleSubmit} className="w-full mx-auto animate-in fade-in duration-500 pb-10">
+    <div className="min-h-full">
+      <form onSubmit={handleSubmit} className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 pb-10">
         
         {/* Header Block */}
-        <div className="flex justify-between items-start mb-8 border-b border-[#f1f5f9] pb-6">
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <div className="text-[12px] font-bold text-[#64748b] mb-2 flex items-center gap-2">
-              Subscription Plans <span className="text-[#cbd5e1]">/</span> <span className="text-[#3758d5]">{mode === 'create' ? 'Create New Tier' : mode === 'edit' ? 'Edit Tier' : 'View Tier'}</span>
-            </div>
-            <h1 className="text-[28px] font-bold text-[#2e3a49] tracking-tight">
+            <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-[#2e3a49]">
               {mode === 'create' ? 'Create Subscription Plan' : mode === 'edit' ? 'Edit Subscription Plan' : 'Subscription Details'}
             </h1>
-            <p className="text-[#64748b] text-[13px] mt-1">Define structural constraints and commercial value for a new service level.</p>
+            <p className="mt-1 max-w-3xl text-[13px] text-[#7a8594]">Define structural constraints and commercial value for a new service level.</p>
           </div>
-          
-          <div className="flex gap-3 mt-4">
-            <button 
+
+          <div className="flex gap-3">
+            <button
               type="button"
               onClick={handleCancelClick}
-              className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#475569] rounded-lg font-bold text-[13px] hover:bg-[#f8fafc] shadow-sm transition-all"
+              className="rounded-md bg-[#e5edf5] px-4 py-2 text-[13px] font-semibold text-[#516276] hover:bg-[#dfe7ef]"
             >
-              {isReadOnly ? 'Close' : 'Discard Draft'}
+              {isReadOnly ? 'Close' : 'Cancel'}
             </button>
             {!isReadOnly && (
-              <button 
+              <button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex items-center px-6 py-2.5 bg-[#2e4fd5] text-white rounded-lg font-bold text-[13px] hover:bg-[#2541c0] shadow-md shadow-[#2e4fd5]/20 transition-all disabled:opacity-70"
+                className="inline-flex items-center justify-center rounded-md bg-[#2e4fd5] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_10px_24px_rgba(55,88,213,0.28)] hover:bg-[#2447d3] disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 {isLoading ? 'Processing...' : (mode === 'create' ? 'Launch Plan' : 'Save Changes')}
@@ -140,9 +139,8 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
           </div>
         </div>
 
-        {/* Form Body - Maximum width for typical SaaS reading flow */}
-        <div className="max-w-[800px]">
-          
+        {/* Form Body */}
+        <div>
           {/* Identity & Pitch */}
           <SectionWrapper icon={Sparkles} title="Identity & Pitch">
             <div className="space-y-6">
@@ -154,7 +152,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   readOnly={isReadOnly}
                   placeholder="e.g. Enterprise Global"
-                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
                 />
               </div>
               <div>
@@ -165,7 +163,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   readOnly={isReadOnly}
                   rows={3}
                   placeholder="Describe the core value proposition for this tier..."
-                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all resize-none"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all resize-none"
                 />
               </div>
             </div>
@@ -182,7 +180,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   onChange={e => setFormData({...formData, monthlyPrice: e.target.value})}
                   readOnly={isReadOnly}
                   placeholder="$ 0.00"
-                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
                 />
               </div>
               <div>
@@ -193,7 +191,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   onChange={e => setFormData({...formData, annualPrice: e.target.value})}
                   readOnly={isReadOnly}
                   placeholder="$ 0.00"
-                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -207,7 +205,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   <div className={`w-5 h-5 rounded border ${formData.features.includes(feat) ? 'bg-[#3758d5] border-[#3758d5]' : 'bg-white border-[#cbd5e1]'} flex items-center justify-center transition-colors shadow-sm`}>
                     {formData.features.includes(feat) && <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
                   </div>
-                  <span className="text-[13px] font-medium text-[#475569]">{feat}</span>
+                  <span className="text-[14px] font-medium text-[#475569]">{feat}</span>
                   <input 
                     type="checkbox" 
                     className="hidden" 
@@ -229,7 +227,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   value={formData.country}
                   onChange={e => setFormData({...formData, country: e.target.value})}
                   disabled={isReadOnly}
-                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#475569] font-medium focus:outline-none focus:bg-white transition-all appearance-none"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#475569] font-medium focus:outline-none focus:bg-white transition-all appearance-none"
                 >
                   <option value="">e.g. United states</option>
                   <option value="US">United States</option>
@@ -243,7 +241,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   value={formData.city}
                   onChange={e => setFormData({...formData, city: e.target.value})}
                   disabled={isReadOnly}
-                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#475569] font-medium focus:outline-none focus:bg-white transition-all appearance-none"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#475569] font-medium focus:outline-none focus:bg-white transition-all appearance-none"
                 >
                   <option value="">City Name</option>
                   <option value="NY">New York</option>
@@ -265,7 +263,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   onChange={e => setFormData({...formData, userSeats: e.target.value})}
                   readOnly={isReadOnly}
                   placeholder="e.g. 20.."
-                  className="w-max max-w-[200px] px-8 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal text-center focus:outline-none focus:bg-white transition-all"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
                 />
               </div>
               <div>
@@ -276,7 +274,7 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
                   onChange={e => setFormData({...formData, branchLicenses: e.target.value})}
                   readOnly={isReadOnly}
                   placeholder="e.g. 05"
-                  className="w-max max-w-[200px] px-8 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[14px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal text-center focus:outline-none focus:bg-white transition-all"
+                  className="w-full px-4 py-3 bg-[#e2e8f0]/40 border border-[#e2e8f0] focus:border-[#cbd5e1] rounded-lg text-[15px] text-[#2e3a49] font-medium placeholder:text-[#94a3b4] placeholder:font-normal focus:outline-none focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -289,17 +287,17 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ mode, initia
 };
 
 const SectionWrapper = ({ icon: Icon, title, children }: { icon: any, title: string, children: React.ReactNode }) => (
-  <div className="bg-[#f8fafc] rounded-xl p-6 md:p-8 mb-6 border border-[#f1f5f9]">
+  <div className="bg-white rounded-xl p-6 md:p-8 mb-6 border border-[#eef2f6] shadow-sm">
     <div className="flex items-center gap-3 mb-6">
       <Icon className="h-5 w-5 text-[#3758d5]" />
-      <h2 className="text-[15px] font-bold text-[#2e3a49]">{title}</h2>
+      <h2 className="text-[16px] font-bold text-[#2e3a49]">{title}</h2>
     </div>
     {children}
   </div>
 );
 
 const InputLabel = ({ children }: { children: React.ReactNode }) => (
-  <label className="block text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-2">
+  <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-2">
     {children}
   </label>
 );

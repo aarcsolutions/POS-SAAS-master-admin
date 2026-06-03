@@ -95,102 +95,99 @@ export const ModuleForm: React.FC<ModuleFormProps> = ({ mode, initialData, onClo
   const title = mode === 'create' ? 'Add New Module' : mode === 'edit' ? 'Edit Module' : 'View Module';
 
   return (
-    <div className="p-8 max-w-[1000px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Form Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#2e3a49]">{title}</h1>
-        <p className="text-[15px] text-[#94a3b4] mt-2">
-          {mode === 'create' 
-            ? 'Register a new system component and define its core parameters.' 
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {/* Header */}
+      <div>
+        <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-[#2e3a49]">{title}</h1>
+        <p className="mt-1 max-w-3xl text-[13px] text-[#7a8594]">
+          {mode === 'create'
+            ? 'Register a new system component and define its core parameters.'
             : 'Update module configuration and system-level identifiers.'}
         </p>
       </div>
 
-      {/* Form Container */}
-      <div className="bg-white rounded-xl border border-[#eef2f6] shadow-sm overflow-hidden">
+      {/* Card */}
+      <div className="rounded-xl border border-[#e7edf5] bg-white p-6 shadow-[0_16px_40px_rgba(30,64,120,0.06)]">
+        <h2 className="mb-5 text-[15px] font-semibold text-[#2e3a49]">Module Details</h2>
         <form onSubmit={handleSubmit}>
-          <div className="p-8 space-y-8">
-            {/* Top Row: Name and Slug */}
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-[#2e3a49] uppercase tracking-wider">Module Name</label>
-                <input 
-                  type="text" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  readOnly={isReadOnly}
-                  placeholder="e.g., Inventory Core"
-                  className={`w-full px-4 py-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/10 ${isReadOnly ? 'opacity-80' : ''}`}
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-bold text-[#2e3a49] uppercase tracking-wider">Slug</label>
-                  {!isReadOnly && <span className="text-[10px] font-bold text-[#3758d5] uppercase tracking-wider">Read Only</span>}
-                </div>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    value={formData.slug}
-                    readOnly
-                    className="w-full px-4 py-3 bg-[#eff4f8] border border-[#e2e8f0] rounded-lg text-[14px] text-[#2e4fd5] font-semibold focus:outline-none"
-                  />
-                  <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4]" />
-                </div>
-              </div>
-            </div>
-
-            {/* Description Row */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold text-[#2e3a49] uppercase tracking-wider">Description</label>
-              <textarea 
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+          {/* Top Row: Name and Slug */}
+          <div className="grid grid-cols-2 gap-6 mb-5">
+            <div>
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.12em] text-[#7d8794]">Module Name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
                 readOnly={isReadOnly}
-                placeholder="Brief explanation of module functionality..."
-                rows={5}
-                className={`w-full px-4 py-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/10 resize-none ${isReadOnly ? 'opacity-80' : ''}`}
+                placeholder="e.g., Inventory Core"
+                className={`h-11 w-full rounded-md border border-[#e7edf5] bg-[#eff4f9] px-3 text-[14px] text-[#475569] placeholder:text-[#9aa7b4] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20 ${isReadOnly ? 'cursor-default opacity-80' : ''}`}
               />
             </div>
-
-            {/* Active Account Toggle */}
-            <div className="flex items-center justify-between p-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl">
-              <div className="flex items-center gap-4">
-                <div className="bg-white p-2.5 rounded-lg border border-[#e2e8f0] shadow-sm">
-                  <Zap className="h-5 w-5 text-[#3758d5]" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-bold text-[#2e3a49]">Active Status</div>
-                  <div className="text-[12px] text-[#94a3b4]">Enable this module for global platform use immediately.</div>
-                </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-[#7d8794]">Slug</label>
+                {!isReadOnly && <span className="text-[10px] font-bold text-[#3758d5] uppercase tracking-wider">Read Only</span>}
               </div>
-              <div 
-                onClick={() => !isReadOnly && setFormData({...formData, isActive: !formData.isActive})}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  formData.isActive ? 'bg-[#3758d5]' : 'bg-[#e2e8f0]'
-                } ${isReadOnly ? 'cursor-default' : 'cursor-pointer'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                  formData.isActive ? 'translate-x-6' : 'translate-x-1'
-                }`} />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.slug}
+                  readOnly
+                  className="h-11 w-full rounded-md border border-[#e7edf5] bg-[#eff4f9] px-3 text-[14px] text-[#2e4fd5] font-semibold focus:outline-none"
+                />
+                <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4]" />
               </div>
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="bg-[#fcfdfe] px-8 py-6 border-t border-[#f1f5f9] flex justify-end gap-3">
-            <button 
+          {/* Description */}
+          <div className="mb-5">
+            <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.12em] text-[#7d8794]">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              readOnly={isReadOnly}
+              placeholder="Brief explanation of module functionality..."
+              rows={5}
+              className={`w-full rounded-md border border-[#e7edf5] bg-[#eff4f9] p-3 text-[14px] text-[#475569] placeholder:text-[#9aa7b4] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20 resize-none ${isReadOnly ? 'cursor-default opacity-80' : ''}`}
+            />
+          </div>
+
+          {/* Active Status Toggle */}
+          <div className="mb-8 flex items-center justify-between rounded-md border border-[#e7edf5] bg-[#eff4f9] p-4">
+            <div className="flex items-center gap-3">
+              <Zap className="h-5 w-5 text-[#3758d5]" />
+              <div>
+                <div className="text-[14px] font-bold text-[#2e3a49]">Active Status</div>
+                <div className="text-[12px] text-[#94a3b4]">Enable this module for global platform use immediately.</div>
+              </div>
+            </div>
+            <div
+              onClick={() => !isReadOnly && setFormData({...formData, isActive: !formData.isActive})}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                formData.isActive ? 'bg-[#3758d5]' : 'bg-[#e2e8f0]'
+              } ${isReadOnly ? 'cursor-default' : 'cursor-pointer'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                formData.isActive ? 'translate-x-4' : 'translate-x-[2px]'
+              }`} />
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#f1f5f9]">
+            <button
               type="button"
               onClick={handleCancelClick}
-              className="px-6 py-2.5 bg-[#e2e8f0] text-[#64748b] rounded-md font-bold text-[14px] hover:bg-[#cbd5e1] transition-all"
+              className="rounded-md bg-[#e5edf5] px-4 py-2 text-[13px] font-semibold text-[#516276] hover:bg-[#dfe7ef]"
             >
               {isReadOnly ? 'Close' : 'Cancel'}
             </button>
             {!isReadOnly && (
-              <button 
+              <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center px-6 py-2.5 bg-[#3758d5] text-white rounded-md font-bold text-[14px] hover:bg-[#2f4fca] shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md bg-[#2e4fd5] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_10px_24px_rgba(55,88,213,0.28)] hover:bg-[#2447d3] disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {saving ? 'Saving...' : (mode === 'create' ? 'Create Module' : 'Save Changes')}
@@ -198,18 +195,6 @@ export const ModuleForm: React.FC<ModuleFormProps> = ({ mode, initialData, onClo
             )}
           </div>
         </form>
-      </div>
-
-      {/* System Note */}
-      <div className="mt-8 relative pl-12 pr-6 py-6 bg-[#f8fafc] border-l-4 border-l-[#3758d5] rounded-xl">
-        <div className="absolute left-4 top-6">
-          <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#3758d5] text-[#3758d5] text-[12px] font-bold">i</div>
-        </div>
-        <div className="space-y-1">
-          <span className="text-[13px] font-bold text-[#2e3a49]">System Note - </span>
-          <span className="text-[13px] text-[#64748b]">Adding a new module will register it globally across the platform architecture.</span>
-          <p className="text-[13px] text-[#64748b]">Ensure the unique slug matches the microservice identifier defined in the API gateway configuration.</p>
-        </div>
       </div>
     </div>
   );

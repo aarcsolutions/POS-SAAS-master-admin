@@ -67,7 +67,7 @@ export default function ModulesPage() {
   }
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+    <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -90,7 +90,7 @@ export default function ModulesPage() {
           <input 
             type="text" 
             placeholder="Search by module name or slug..."
-            className="w-full pl-10 pr-4 py-2 bg-[#f8fafc] border border-[#f1f5f9] rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/10"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-[#f1f5f9] rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -105,16 +105,22 @@ export default function ModulesPage() {
       <div className="bg-white rounded-xl border border-[#eef2f6] overflow-hidden shadow-sm mb-6">
         <table className="w-full text-left font-sans">
           <thead>
-            <tr className="bg-[#fcfdfe] border-b border-[#f1f5f9] text-[11px] font-bold text-[#94a3b4] uppercase tracking-wider">
-              <th className="px-6 py-4 text-[10px]">Module Identity</th>
-              <th className="px-6 py-4 text-[10px]">Description</th>
-              <th className="px-6 py-4 text-[10px]">Version</th>
-              <th className="px-6 py-4 text-[10px]">Status</th>
-              <th className="px-6 py-4 text-right text-[10px]">Actions</th>
+            <tr className="bg-[#fcfdfe] border-b border-[#f1f5f9] text-[12px] font-bold text-[#94a3b4] uppercase tracking-wider">
+              <th className="px-6 py-4 text-[11px]">Module Identity</th>
+              <th className="px-6 py-4 text-[11px]">Description</th>
+              <th className="px-6 py-4 text-[11px]">Version</th>
+              <th className="px-6 py-4 text-[11px]">Status</th>
+              <th className="px-6 py-4 text-right text-[11px]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_MODULES.map((module) => (
+            {MOCK_MODULES.filter((module) =>
+              !searchTerm ||
+              module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              module.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              module.status.toLowerCase().includes(searchTerm.toLowerCase())
+            ).map((module) => (
               <tr key={module.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
@@ -123,15 +129,15 @@ export default function ModulesPage() {
                     </div>
                     <div>
                       <div className="text-[14px] font-bold text-[#2e3a49] group-hover:text-[#2e4fd5] transition-colors">{module.name}</div>
-                      <div className="text-[11px] text-[#94a3b4] font-mono uppercase tracking-tighter">{module.slug}</div>
+                      <div className="text-[12px] text-[#94a3b4] font-mono uppercase tracking-tighter">{module.slug}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 max-w-[300px]">
-                  <div className="text-[13px] text-[#55606d] truncate">{module.description}</div>
+                  <div className="text-[14px] text-[#55606d] truncate">{module.description}</div>
                 </td>
                 <td className="px-6 py-4 transition-all">
-                  <span className="text-[11px] font-bold bg-[#f1f5f9] text-[#64748b] px-2 py-1 rounded group-hover:bg-[#3758d5] group-hover:text-white">
+                  <span className="text-[12px] font-bold bg-[#f1f5f9] text-[#64748b] px-2 py-1 rounded group-hover:bg-[#3758d5] group-hover:text-white">
                     {module.version}
                   </span>
                 </td>
@@ -141,7 +147,7 @@ export default function ModulesPage() {
                       module.status === 'Active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 
                       module.status === 'Maintenance' ? 'bg-amber-500' : 'bg-slate-300'
                     }`} />
-                    <span className={`text-[12px] font-bold ${
+                    <span className={`text-[13px] font-bold ${
                       module.status === 'Active' ? 'text-emerald-600' : 
                       module.status === 'Maintenance' ? 'text-amber-600' : 'text-[#64748b]'
                     }`}>
@@ -154,7 +160,7 @@ export default function ModulesPage() {
                     <summary className="inline-flex list-none cursor-pointer items-center justify-center rounded-md p-1.5 text-[#94a3b4] hover:bg-[#f1f5f9] transition-all">
                       <MoreHorizontal className="h-4 w-4" />
                     </summary>
-                    <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-md border border-[#e6edf5] bg-white py-1 text-[13px] shadow-[0_16px_40px_rgba(30,64,120,0.12)] text-left">
+                    <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-md border border-[#e6edf5] bg-white py-1 text-[14px] shadow-[0_16px_40px_rgba(30,64,120,0.12)] text-left">
                       <button onClick={() => handleOpenForm('view', module)} className="flex items-center gap-2 w-full px-4 py-2.5 text-[#2e3a49] hover:bg-[#f6f9fd] hover:text-[#1f2a37] font-medium">
                         <Eye className="h-4 w-4 text-[#8a95a5]" /> View Details
                       </button>
