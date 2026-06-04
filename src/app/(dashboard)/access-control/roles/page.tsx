@@ -1,17 +1,17 @@
 "use client";
 import React, { useState } from 'react';
-import { MoreHorizontal, Plus, Shield, BadgeCheck, Settings2, Users, Search, Filter, Eye, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Plus, Shield, BadgeCheck, Settings2, Users, Search, Filter, Eye, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import { RoleForm } from '@/components/roles/role-form';
 import { RolePermissionsMapping } from '@/components/roles/role-permissions';
 import { format } from 'date-fns';
 
 const MOCK_ROLES = [
-  { id: '1', title: 'Platform Admin', slug: 'platform-admin', created_at: '2023-10-12T00:00:00Z' },
-  { id: '2', title: 'Platform Manager', slug: 'platform-manager', created_at: '2023-11-05T00:00:00Z' },
-  { id: '3', title: 'Tenant Owner', slug: 'tenant-owner', created_at: '2023-12-14T00:00:00Z' },
-  { id: '4', title: 'Branch Manager', slug: 'branch-manager', created_at: '2024-01-02T00:00:00Z' },
-  { id: '5', title: 'Cashier', slug: 'cashier', created_at: '2024-01-15T00:00:00Z' },
-  { id: '6', title: 'Support Agent', slug: 'support-agent', created_at: '2024-02-03T00:00:00Z' },
+  { id: '1', title: 'Platform Admin', slug: 'platform-admin', created_at: '2023-10-12T00:00:00Z', status: 'Active' },
+  { id: '2', title: 'Platform Manager', slug: 'platform-manager', created_at: '2023-11-05T00:00:00Z', status: 'Active' },
+  { id: '3', title: 'Tenant Owner', slug: 'tenant-owner', created_at: '2023-12-14T00:00:00Z', status: 'Inactive' },
+  { id: '4', title: 'Branch Manager', slug: 'branch-manager', created_at: '2024-01-02T00:00:00Z', status: 'Active' },
+  { id: '5', title: 'Cashier', slug: 'cashier', created_at: '2024-01-15T00:00:00Z', status: 'Active' },
+  { id: '6', title: 'Support Agent', slug: 'support-agent', created_at: '2024-02-03T00:00:00Z', status: 'Inactive' },
 ];
 
 export default function RolesPage() {
@@ -20,6 +20,7 @@ export default function RolesPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedRole, setSelectedRole] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   const handleOpenForm = (mode: 'create' | 'edit' | 'view', role?: any) => {
     setFormMode(mode);
@@ -48,11 +49,13 @@ export default function RolesPage() {
     );
   }
 
-  const filteredRoles = MOCK_ROLES.filter((r) =>
-    !searchTerm ||
-    r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRoles = MOCK_ROLES.filter((r) => {
+    const matchesSearch = !searchTerm ||
+      r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.slug.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || r.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500">
@@ -110,9 +113,24 @@ export default function RolesPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]">
+            <div className="relative min-w-[160px]">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+              >
+                <option value="">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+            </div>
+            <button
+              onClick={() => { setSearchTerm(''); setStatusFilter(''); }}
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]"
+            >
               <Filter className="h-4 w-4" />
-              Filters
+              Clear
             </button>
           </div>
 

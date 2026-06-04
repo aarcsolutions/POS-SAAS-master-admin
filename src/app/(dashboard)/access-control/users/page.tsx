@@ -12,7 +12,8 @@ import {
   Shield,
   Eye,
   Pencil,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import { UserForm } from '@/components/users/user-form';
 
@@ -39,6 +40,8 @@ const MOCK_USERS: UserItem[] = [
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
@@ -118,9 +121,38 @@ export default function UsersPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]">
+        <div className="relative min-w-[160px]">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Roles</option>
+            <option value="SUPER ADMIN">Super Admin</option>
+            <option value="MANAGER">Manager</option>
+            <option value="SUPPORT">Support</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <div className="relative min-w-[160px]">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <button
+          onClick={() => { setSearchTerm(''); setRoleFilter(''); setStatusFilter(''); }}
+          className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]"
+        >
           <Filter className="h-4 w-4" />
-          Filters
+          Clear
         </button>
       </div>
 
@@ -138,12 +170,15 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_USERS.filter((user) =>
-              !searchTerm ||
-              user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              user.role.toLowerCase().includes(searchTerm.toLowerCase())
-            ).map((user) => (
+            {MOCK_USERS.filter((user) => {
+              const matchesSearch = !searchTerm ||
+                user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.role.toLowerCase().includes(searchTerm.toLowerCase());
+              const matchesRole = !roleFilter || user.role === roleFilter;
+              const matchesStatus = !statusFilter || user.status === statusFilter;
+              return matchesSearch && matchesRole && matchesStatus;
+            }).map((user) => (
               <tr key={user.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">

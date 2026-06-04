@@ -9,7 +9,8 @@ import {
   MoreHorizontal,
   Eye,
   Pencil,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import { ModuleForm } from '@/components/modules/module-form';
 
@@ -39,6 +40,7 @@ const MOCK_MODULES: ModuleItem[] = [
 
 export default function ModulesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedModule, setSelectedModule] = useState<ModuleItem | null>(null);
@@ -95,9 +97,25 @@ export default function ModulesPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]">
+        <div className="relative min-w-[160px]">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <button
+          onClick={() => { setSearchTerm(''); setStatusFilter(''); }}
+          className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]"
+        >
           <Filter className="h-4 w-4" />
-          Filters
+          Clear
         </button>
       </div>
 
@@ -114,13 +132,15 @@ export default function ModulesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_MODULES.filter((module) =>
-              !searchTerm ||
-              module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              module.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              module.status.toLowerCase().includes(searchTerm.toLowerCase())
-            ).map((module) => (
+            {MOCK_MODULES.filter((module) => {
+              const matchesSearch = !searchTerm ||
+                module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                module.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                module.status.toLowerCase().includes(searchTerm.toLowerCase());
+              const matchesStatus = !statusFilter || module.status === statusFilter;
+              return matchesSearch && matchesStatus;
+            }).map((module) => (
               <tr key={module.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">

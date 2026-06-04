@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { Plus, Download, Filter, MoreHorizontal, Search, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Download, Filter, MoreHorizontal, Search, Eye, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import { SubscriptionForm } from '@/components/subscriptions/subscription-form';
 import { SubscriptionSuccess } from '@/components/subscriptions/subscription-success';
 
@@ -23,6 +23,7 @@ export const SubscriptionList = () => {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [successData, setSuccessData] = useState<any>(null);
 
   const handleOpenForm = (mode: 'create' | 'edit' | 'view', plan?: any) => {
@@ -119,10 +120,27 @@ export const SubscriptionList = () => {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 pr-2">
-          <button className="flex items-center gap-2 px-4 py-2 text-[#64748b] hover:text-[#2e3a49] text-[13px] font-bold transition-colors">
+        <div className="flex items-center gap-3 pr-2">
+          <div className="relative min-w-[160px]">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-9 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+            >
+              <option value="">All Statuses</option>
+              <option value="Published">Published</option>
+              <option value="In Review">In Review</option>
+              <option value="Archived">Archived</option>
+              <option value="Live">Live</option>
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+          </div>
+          <button
+            onClick={() => { setSearchTerm(''); setStatusFilter(''); }}
+            className="flex items-center gap-2 px-3 py-2 text-[#64748b] hover:text-[#2e3a49] text-[13px] font-bold transition-colors"
+          >
             <Filter className="h-4 w-4" />
-            Filter
+            Clear
           </button>
           <div className="w-[1px] h-4 bg-[#e2e8f0]"></div>
           <button className="flex items-center gap-2 px-4 py-2 text-[#64748b] hover:text-[#2e3a49] text-[13px] font-bold transition-colors">
@@ -154,12 +172,14 @@ export const SubscriptionList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f1f5f9]">
-              {CUSTOM_PLANS.filter((plan) =>
-                !searchTerm ||
-                plan.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                plan.planName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                plan.status.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((plan) => (
+              {CUSTOM_PLANS.filter((plan) => {
+                const matchesSearch = !searchTerm ||
+                  plan.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  plan.planName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  plan.status.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesStatus = !statusFilter || plan.status === statusFilter;
+                return matchesSearch && matchesStatus;
+              }).map((plan) => (
                 <tr key={plan.id} className="hover:bg-[#fcfdfe] transition-colors group">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-3">
@@ -235,11 +255,13 @@ export const SubscriptionList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f1f5f9]">
-              {STANDARD_PLANS.filter((plan) =>
-                !searchTerm ||
-                plan.tier.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                plan.status.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((plan) => (
+              {STANDARD_PLANS.filter((plan) => {
+                const matchesSearch = !searchTerm ||
+                  plan.tier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  plan.status.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesStatus = !statusFilter || plan.status === statusFilter;
+                return matchesSearch && matchesStatus;
+              }).map((plan) => (
                 <tr key={plan.id} className="hover:bg-[#fcfdfe] transition-colors group">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-3">

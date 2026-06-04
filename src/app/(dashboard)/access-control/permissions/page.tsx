@@ -18,7 +18,8 @@ import {
   CreditCard,
   Settings,
   Eye,
-  Pencil
+  Pencil,
+  ChevronDown
 } from 'lucide-react';
 import { PermissionForm } from '@/components/permissions/permission-form';
 
@@ -44,6 +45,8 @@ const MOCK_PERMISSIONS: PermissionItem[] = [
 
 export default function PermissionsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [moduleFilter, setModuleFilter] = useState('');
+  const [actionFilter, setActionFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedPermission, setSelectedPermission] = useState<PermissionItem | null>(null);
@@ -128,9 +131,42 @@ export default function PermissionsListPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]">
+        <div className="relative min-w-[160px]">
+          <select
+            value={moduleFilter}
+            onChange={(e) => setModuleFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Modules</option>
+            <option value="Authentication">Authentication</option>
+            <option value="Billing">Billing</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Security">Security</option>
+            <option value="System">System</option>
+            <option value="Inventory">Inventory</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <div className="relative min-w-[160px]">
+          <select
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Actions</option>
+            <option value="READ">READ</option>
+            <option value="CREATE">CREATE</option>
+            <option value="UPDATE">UPDATE</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <button
+          onClick={() => { setSearchTerm(''); setModuleFilter(''); setActionFilter(''); }}
+          className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]"
+        >
           <Filter className="h-4 w-4" />
-          Filters
+          Clear
         </button>
       </div>
 
@@ -147,13 +183,16 @@ export default function PermissionsListPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_PERMISSIONS.filter((perm) =>
-              !searchTerm ||
-              perm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              perm.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              perm.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              perm.description.toLowerCase().includes(searchTerm.toLowerCase())
-            ).map((perm) => (
+            {MOCK_PERMISSIONS.filter((perm) => {
+              const matchesSearch = !searchTerm ||
+                perm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                perm.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                perm.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                perm.description.toLowerCase().includes(searchTerm.toLowerCase());
+              const matchesModule = !moduleFilter || perm.module === moduleFilter;
+              const matchesAction = !actionFilter || perm.action === actionFilter;
+              return matchesSearch && matchesModule && matchesAction;
+            }).map((perm) => (
               <tr key={perm.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">

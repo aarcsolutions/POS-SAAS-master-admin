@@ -14,7 +14,8 @@ import {
   Trash2,
   Pencil,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 import { TenantWizard } from '@/components/tenants/tenant-wizard';
 import { format } from 'date-fns';
@@ -35,14 +36,19 @@ export const TenantList = () => {
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [billingFilter, setBillingFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  const filteredTenants = MOCK_TENANTS.filter((t) =>
-    !search ||
-    t.tenantName.toLowerCase().includes(search.toLowerCase()) ||
-    t.domain.toLowerCase().includes(search.toLowerCase()) ||
-    t.adminName.toLowerCase().includes(search.toLowerCase()) ||
-    t.adminEmail.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTenants = MOCK_TENANTS.filter((t) => {
+    const matchesSearch = !search ||
+      t.tenantName.toLowerCase().includes(search.toLowerCase()) ||
+      t.domain.toLowerCase().includes(search.toLowerCase()) ||
+      t.adminName.toLowerCase().includes(search.toLowerCase()) ||
+      t.adminEmail.toLowerCase().includes(search.toLowerCase());
+    const matchesBilling = !billingFilter || t.billingCycle === billingFilter;
+    const matchesStatus = !statusFilter || (statusFilter === 'Active' ? t.is_active : !t.is_active);
+    return matchesSearch && matchesBilling && matchesStatus;
+  });
 
   const handleOpenWizard = (mode: 'create' | 'edit' | 'view', id?: string) => {
     setWizardMode(mode);
@@ -98,9 +104,37 @@ export const TenantList = () => {
             className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-[#f1f5f9] rounded-md text-[14px] text-[#475569] placeholder:text-[#94a3b4] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/10"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]">
+        <div className="relative min-w-[160px]">
+          <select
+            value={billingFilter}
+            onChange={(e) => setBillingFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Billing Cycles</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Annual">Annual</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <div className="relative min-w-[160px]">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+        </div>
+        <button
+          onClick={() => { setSearch(''); setBillingFilter(''); setStatusFilter(''); }}
+          className="flex items-center gap-2 px-4 py-2.5 border border-[#f1f5f9] rounded-md hover:bg-[#f8fafc] text-[#64748b] font-semibold text-[13px]"
+        >
           <Filter className="h-4 w-4" />
-          Filters
+          Clear
         </button>
       </div>
 
