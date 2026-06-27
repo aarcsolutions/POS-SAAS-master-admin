@@ -25,7 +25,15 @@ export const tenantsApi = {
    * Create a new tenant (Onboarding)
    */
   create: async (payload: Partial<Tenant>) => {
-    const { data } = await api.post('/tenants/create', payload);
+    // Map frontend field names to backend DTO field names
+    const mappedPayload = {
+      name: payload.tenantName,
+      email: payload.adminEmail,
+      password: payload.adminPassword,
+      description: payload.description,
+      domainId: payload.domainId
+    };
+    const { data } = await api.post('/tenants/create', mappedPayload);
     return data;
   },
 

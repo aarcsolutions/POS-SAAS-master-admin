@@ -1,11 +1,11 @@
 "use client";
-import React, { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  ChevronLeft, 
+import React, { useState, useEffect } from 'react';
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  ChevronLeft,
   ChevronRight,
   Download,
   Shield,
@@ -22,6 +22,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { PermissionForm } from '@/components/permissions/permission-form';
+import { permissionsApi } from '@/services/permissions';
 
 interface PermissionItem {
   id: string;
@@ -32,22 +33,53 @@ interface PermissionItem {
   icon: any;
 }
 
-const MOCK_PERMISSIONS: PermissionItem[] = [
-  { id: '1', name: 'system.auth.login', module: 'Authentication', action: 'READ', description: 'Manages initial system handshake and user session establishment.', icon: Lock },
-  { id: '2', name: 'subscription.modify', module: 'Billing', action: 'UPDATE', description: 'Modify merchant tier levels and billing cycle configurations.', icon: FileText },
-  { id: '3', name: 'module.feature.toggle', module: 'Maintenance', action: 'CREATE', description: 'Enable or disable system features.', icon: ToggleLeft },
-  { id: '4', name: 'user.session.terminate', module: 'Security', action: 'DELETE', description: 'Force logout active user sessions.', icon: Trash2 },
-  { id: '5', name: 'billing.invoice.generate', module: 'Billing', action: 'CREATE', description: 'Create manual billing invoices.', icon: CreditCard },
-  { id: '6', name: 'stock.inventory.adjust', module: 'Inventory', action: 'UPDATE', description: 'Manually adjust product stock levels.', icon: Database },
-  { id: '7', name: 'backup.system.create', module: 'Maintenance', action: 'CREATE', description: 'Trigger manual system data backup.', icon: Settings },
-  { id: '8', name: 'api.endpoint.configure', module: 'System', action: 'UPDATE', description: 'Configure external API integration points.', icon: Eye }
-];
-
 export default function PermissionsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [moduleFilter, setModuleFilter] = useState('');
   const [actionFilter, setActionFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [permissions, setPermissions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPermissions();
+  }, []);
+
+  const fetchPermissions = async () => {
+    try {
+      setLoading(true);
+      const data = await permissionsApi.getAll({ page: 1, limit: 100 }) as any;
+      console.log('Permissions API Response:', data);
+
+      let permissionsArray = [];
+      if (Array.isArray(data)) {
+        permissionsArray = data;
+      } else if (Array.isArray(data.data)) {
+        permissionsArray = data.data;
+      } else if (data.data?.data && Array.isArray(data.data.data)) {
+        permissionsArray = data.data.data;
+      } else if (data.data?.permissions && Array.isArray(data.data.permissions)) {
+        permissionsArray = data.data.permissions;
+      }
+
+      const transformedPermissions = permissionsArray.map((perm: any) => ({
+        id: perm.id,
+        name: perm.name || perm.slug,
+        module: perm.module?.name || 'System',
+        action: perm.action || 'READ',
+        description: perm.description || '',
+        icon: Shield
+      }));
+
+      console.log('Transformed Permissions:', transformedPermissions);
+      setPermissions(transformedPermissions);
+    } catch (error) {
+      console.error('Failed to fetch permissions:', error);
+      setPermissions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedPermission, setSelectedPermission] = useState<PermissionItem | null>(null);
 
@@ -77,12 +109,29 @@ export default function PermissionsListPage() {
     setIsFormOpen(true);
   };
 
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete permission "${name}"? This action cannot be undone.`)) {
+      try {
+        await permissionsApi.delete(id);
+        await fetchPermissions();
+      } catch (error) {
+        console.error('Failed to delete permission:', error);
+        alert('Failed to delete permission. Please try again.');
+      }
+    }
+  };
+
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    fetchPermissions();
+  };
+
   if (isFormOpen) {
     return (
-      <PermissionForm 
+      <PermissionForm
         mode={formMode}
         initialData={selectedPermission}
-        onClose={() => setIsFormOpen(false)}
+        onClose={handleFormClose}
         onSubmit={(data) => {
           console.log('Permission Action:', formMode, data);
           setIsFormOpen(false);
@@ -183,12 +232,12 @@ export default function PermissionsListPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_PERMISSIONS.filter((perm) => {
+            {permissions.filter((perm) => {
               const matchesSearch = !searchTerm ||
-                perm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                perm.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                perm.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                perm.description.toLowerCase().includes(searchTerm.toLowerCase());
+                (perm.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (perm.module?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (perm.action?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (perm.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
               const matchesModule = !moduleFilter || perm.module === moduleFilter;
               const matchesAction = !actionFilter || perm.action === actionFilter;
               return matchesSearch && matchesModule && matchesAction;
@@ -242,7 +291,7 @@ export default function PermissionsListPage() {
 
       {/* Pagination Section */}
       <div className="flex items-center justify-between text-[14px] text-[#94a3b4]">
-        <div>Showing 1 to {MOCK_PERMISSIONS.length} of 124 results</div>
+        <div>Showing {permissions.length} permissions</div>
         <div className="flex items-center gap-2">
           <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all">
             <ChevronLeft className="h-4 w-4" />

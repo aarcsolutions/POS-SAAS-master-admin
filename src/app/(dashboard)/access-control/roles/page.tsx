@@ -1,18 +1,10 @@
 "use client";
-import React, { useState } from 'react';
-import { MoreHorizontal, Plus, Shield, BadgeCheck, Settings2, Users, Search, Filter, Eye, Pencil, Trash2, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MoreHorizontal, Plus, Shield, BadgeCheck, Settings2, Users, Search, Filter, Eye, Pencil, Trash2, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RoleForm } from '@/components/roles/role-form';
 import { RolePermissionsMapping } from '@/components/roles/role-permissions';
+import { rolesApi } from '@/services/roles';
 import { format } from 'date-fns';
-
-const MOCK_ROLES = [
-  { id: '1', title: 'Platform Admin', slug: 'platform-admin', created_at: '2023-10-12T00:00:00Z', status: 'Active' },
-  { id: '2', title: 'Platform Manager', slug: 'platform-manager', created_at: '2023-11-05T00:00:00Z', status: 'Active' },
-  { id: '3', title: 'Tenant Owner', slug: 'tenant-owner', created_at: '2023-12-14T00:00:00Z', status: 'Inactive' },
-  { id: '4', title: 'Branch Manager', slug: 'branch-manager', created_at: '2024-01-02T00:00:00Z', status: 'Active' },
-  { id: '5', title: 'Cashier', slug: 'cashier', created_at: '2024-01-15T00:00:00Z', status: 'Active' },
-  { id: '6', title: 'Support Agent', slug: 'support-agent', created_at: '2024-02-03T00:00:00Z', status: 'Inactive' },
-];
 
 export default function RolesPage() {
   const [activeTab, setActiveTab] = useState<'roles' | 'permissions'>('roles');
@@ -21,6 +13,49 @@ export default function RolesPage() {
   const [selectedRole, setSelectedRole] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [roles, setRoles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const data = await rolesApi.getAll({ page, limit: 100 }) as any;
+      console.log('Roles API Response:', data);
+
+      let rolesArray = [];
+      if (Array.isArray(data)) {
+        rolesArray = data;
+      } else if (Array.isArray(data.data)) {
+        rolesArray = data.data;
+      } else if (data.data?.data && Array.isArray(data.data.data)) {
+        rolesArray = data.data.data;
+      } else if (data.data?.roles && Array.isArray(data.data.roles)) {
+        rolesArray = data.data.roles;
+      }
+
+      const transformedRoles = rolesArray.map((role: any) => ({
+        id: role.id,
+        title: role.title,
+        slug: role.slug,
+        created_at: role.created_at,
+        status: role.is_active ? 'Active' : 'Inactive'
+      }));
+
+      console.log('Transformed Roles:', transformedRoles);
+      setRoles(transformedRoles);
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+      setRoles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenForm = (mode: 'create' | 'edit' | 'view', role?: any) => {
     setFormMode(mode);
@@ -34,28 +69,45 @@ export default function RolesPage() {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to delete the role "${title}"?`)) {
-      console.log('Delete role:', id);
+    if (window.confirm(`Are you sure you want to delete the role "${title}"? This action cannot be undone.`)) {
+      try {
+        await rolesApi.delete(id);
+        await fetchRoles();
+      } catch (error) {
+        console.error('Failed to delete role:', error);
+        alert('Failed to delete role. Please try again.');
+      }
     }
+  };
+
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    fetchRoles();
   };
 
   if (isFormOpen) {
     return (
-      <RoleForm 
+      <RoleForm
         mode={formMode}
         initialData={selectedRole}
-        onClose={() => setIsFormOpen(false)}
+        onClose={handleFormClose}
       />
     );
   }
 
-  const filteredRoles = MOCK_ROLES.filter((r) => {
+  const filteredRoles = roles.filter((r) => {
     const matchesSearch = !searchTerm ||
-      r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.slug.toLowerCase().includes(searchTerm.toLowerCase());
+      (r.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (r.slug?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || r.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredRoles.length / itemsPerPage);
+  const paginatedRoles = filteredRoles.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500">
@@ -117,13 +169,13 @@ export default function RolesPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+                className="h-10 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white pl-4 pr-10 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/10 focus:border-[#2e4fd5] transition-all shadow-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8] pointer-events-none" />
             </div>
             <button
               onClick={() => { setSearchTerm(''); setStatusFilter(''); }}
@@ -150,7 +202,7 @@ export default function RolesPage() {
               </div>
             ) : (
               <div className="divide-y divide-[#eef2f7]">
-                {filteredRoles.map((r: any) => (
+                {paginatedRoles.map((r: any) => (
                   <div key={r.id} className="grid grid-cols-12 items-center px-5 py-4 hover:bg-[#fcfdfe] transition-colors group">
                     <div className="col-span-6 flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#f2f5f8] text-[#7a8594] group-hover:bg-[#eef2ff] group-hover:text-[#2e4fd5] transition-colors">
@@ -191,6 +243,36 @@ export default function RolesPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-5 py-4 border-t border-[#f1f5f9] bg-white">
+            <div className="flex items-center gap-3">
+              <span className="text-[14px] font-medium text-[#64748b]">Total Roles: <span className="text-[#2e3a49] font-bold">{filteredRoles.length}</span></span>
+              <span className="text-[14px] font-medium text-[#94a3b4]">|</span>
+              <span className="text-[14px] font-medium text-[#64748b]">Page {page} of {totalPages}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="p-1.5 rounded-lg text-[#94a3b4] hover:bg-[#f1f5f9] hover:text-[#475569] disabled:opacity-30 transition-all"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <div className="flex items-center gap-1 px-2">
+                <span className="h-9 min-w-[36px] flex items-center justify-center rounded-lg bg-[#3758d5] text-white font-bold text-[14px]">
+                  {page}
+                </span>
+              </div>
+              <button
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= totalPages}
+                className="p-1.5 rounded-lg text-[#94a3b4] hover:bg-[#f1f5f9] hover:text-[#475569] disabled:opacity-30 transition-all"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Role Usage Analytics */}

@@ -1,20 +1,28 @@
-import { apiFetch } from '../api';
-import { ROUTES } from '../../utils/constants';
-import { ModulesListResponse, ModuleItemResponse } from '../../types/admin.types';
+import api from '../lib/api';
 
-export const modulesService = {
-  getAll: (page = 1, limit = 10) => 
-    apiFetch<ModulesListResponse>(`${ROUTES.ACCESS_CONTROL.MODULES}?page=${page}&limit=${limit}`),
-  
-  create: (data: any) => 
-    apiFetch<ModuleItemResponse>(ROUTES.ACCESS_CONTROL.MODULES, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-  
-  update: (id: string, data: any) => 
-    apiFetch<ModuleItemResponse>(`${ROUTES.ACCESS_CONTROL.MODULES}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    }),
+export const modulesApi = {
+  getAll: async (params: { page?: number; limit?: number; search?: string } = {}) => {
+    const { data } = await api.get('/modules/getAll', { params });
+    return data;
+  },
+
+  getById: async (id: string) => {
+    const { data } = await api.get(`/modules/getById/${id}`);
+    return data;
+  },
+
+  create: async (payload: any) => {
+    const { data } = await api.post('/modules/create', payload);
+    return data;
+  },
+
+  update: async (id: string, payload: any) => {
+    const { data } = await api.put('/modules/update', { id, ...payload });
+    return data;
+  },
+
+  delete: async (id: string) => {
+    const { data } = await api.delete('/modules/delete', { data: { id } });
+    return data;
+  },
 };

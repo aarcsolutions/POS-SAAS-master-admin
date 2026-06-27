@@ -7,7 +7,6 @@ import { ADMIN_LINK_PERM } from '@/rbac/link-permissions';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { useLogoutMutation } from '@/hooks/auth';
-import { getSidebarModules } from '@/data/mockSidebarData';
 
 export default function DashboardLayout({
   children,
@@ -15,7 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { permissions, user, modulesWithPermisssions, logout } = useAuthStore();
+  const { permissions, user, modulesWithPermisssions } = useAuthStore();
   const logoutMutation = useLogoutMutation();
 
   const navClasses = (path: string) =>
@@ -31,8 +30,36 @@ export default function DashboardLayout({
         : 'text-[#3e4754] hover:bg-[#f2f6fb]'
     }`;
 
-  // KSR-Style Dynamic Filter:
-  // Check if the route's required permission exists in the user's flat permission array.
+  const visibleModules = modulesWithPermisssions
+    .map((module) => {
+      const menuPermission = module.permissions.find(
+        (permission) => permission.is_Show_in_menu && permission.is_allowed
+      );
+
+      if (!menuPermission) {
+        return null;
+      }
+
+      const config =
+        SIDEBAR_CONFIG[module.module_slug as keyof typeof SIDEBAR_CONFIG] ||
+        SIDEBAR_CONFIG.default;
+
+      const path = config.path !== '/' ? config.path : `/${module.module_slug}`;
+
+      return {
+        slug: module.module_slug,
+        name: module.module_name,
+        Icon: config.icon,
+        path,
+      };
+    })
+    .filter(Boolean) as Array<{
+      slug: string;
+      name: string;
+      Icon: React.ComponentType<{ className?: string }>;
+      path: string;
+    }>;
+
   const isRouteAllowed = (route: string) => {
     const requiredPerm = ADMIN_LINK_PERM[route];
     if (!requiredPerm) return true; // Public or unmapped routes
@@ -51,14 +78,8 @@ export default function DashboardLayout({
             <div className="text-[11px] font-medium text-[#94a3b4]">Master Control</div>
           </div>
           <nav className="space-y-1 text-[14px]">
-            {getSidebarModules().map((module) => {
-              const slug = module.module_slug;
-              const config = SIDEBAR_CONFIG[slug as keyof typeof SIDEBAR_CONFIG] || SIDEBAR_CONFIG.default;
-              
-              // Only show if it has a valid path (or use default)
-              const path = config.path !== '/' ? config.path : `/${slug.toLowerCase()}`;
-              
-              const Icon = config.icon;
+            {visibleModules.map((module) => {
+              const { slug, path, Icon, name } = module;
               return (
                 <Link 
                   key={slug} 
@@ -66,7 +87,7 @@ export default function DashboardLayout({
                   href={path}
                 >
                   <Icon className="h-4 w-4" /> 
-                  <span className="capitalize">{module.module_name}</span>
+                  <span className="capitalize">{name}</span>
                 </Link>
               );
             })}

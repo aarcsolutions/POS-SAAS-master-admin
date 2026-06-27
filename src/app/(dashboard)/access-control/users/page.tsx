@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -16,6 +16,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { UserForm } from '@/components/users/user-form';
+import { usersApi } from '@/services/users';
 
 interface UserItem {
   id: string;
@@ -28,16 +29,6 @@ interface UserItem {
   phone?: string;
 }
 
-const MOCK_USERS: UserItem[] = [
-  { id: '1', name: 'Marcus Aurelius', email: 'm.aurelius@architect.io', role: 'SUPER ADMIN', status: 'Active', createdAt: 'Oct 12, 2023', avatar: 'MA' },
-  { id: '2', name: 'Elena Vance', email: 'e.vance@architect.io', role: 'MANAGER', status: 'Active', createdAt: 'Nov 05, 2023', avatar: 'EV' },
-  { id: '3', name: 'Julian Casablancas', email: 'j.casablancas@architect.io', role: 'SUPPORT', status: 'Inactive', createdAt: 'Dec 14, 2023', avatar: 'JC' },
-  { id: '4', name: 'Sarah Connor', email: 's.connor@architect.io', role: 'MANAGER', status: 'Active', createdAt: 'Jan 02, 2024', avatar: 'SC' },
-  { id: '5', name: 'John Doe', email: 'j.doe@architect.io', role: 'SUPPORT', status: 'Active', createdAt: 'Jan 15, 2024', avatar: 'JD' },
-  { id: '6', name: 'Alex Rivera', email: 'a.rivera@architect.io', role: 'MANAGER', status: 'Suspended', createdAt: 'Feb 03, 2024', avatar: 'AR' },
-  { id: '7', name: 'Linda May', email: 'l.may@architect.io', role: 'SUPER ADMIN', status: 'Active', createdAt: 'Feb 11, 2024', avatar: 'LM' }
-];
-
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -45,6 +36,69 @@ export default function UsersPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await usersApi.getAll({ page, limit: 100 }) as any;
+      console.log('Users API Response:', data);
+
+      let usersArray = [];
+      if (Array.isArray(data)) {
+        usersArray = data;
+      } else if (Array.isArray(data.data)) {
+        usersArray = data.data;
+      } else if (data.data?.data && Array.isArray(data.data.data)) {
+        usersArray = data.data.data;
+      } else if (data.data?.users && Array.isArray(data.data.users)) {
+        usersArray = data.data.users;
+      }
+
+      // Transform API data to match UserItem interface
+      const transformedUsers = usersArray.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role?.title || 'SUPPORT',
+        status: user.is_active ? 'Active' : 'Inactive',
+        createdAt: user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A',
+        avatar: user.name ? user.name.substring(0, 2).toUpperCase() : 'NA',
+        phone: user.phone
+      }));
+
+      console.log('Transformed Users:', transformedUsers);
+      setUsers(transformedUsers);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = !searchTerm ||
+      (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (user.role?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    const matchesRole = !roleFilter || user.role === roleFilter;
+    const matchesStatus = !statusFilter || user.status === statusFilter;
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   const getRoleStyle = (role: string) => {
     switch (role) {
@@ -70,18 +124,36 @@ export default function UsersPage() {
     setIsFormOpen(true);
   };
 
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    fetchUsers();
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete user "${name}"? This action cannot be undone.`)) {
+      try {
+        await usersApi.delete(id);
+        await fetchUsers();
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+        alert('Failed to delete user. Please try again.');
+      }
+    }
+  };
+
   if (isFormOpen) {
     return (
-      <UserForm 
+      <UserForm
         mode={formMode}
         initialData={selectedUser ? {
+          id: selectedUser.id,
           name: selectedUser.name,
           email: selectedUser.email,
           role: selectedUser.role,
           status: selectedUser.status,
           phone: selectedUser.phone || '+1 (555) 000-0000'
         } : undefined}
-        onClose={() => setIsFormOpen(false)}
+        onClose={handleFormClose}
       />
     );
   }
@@ -113,8 +185,8 @@ export default function UsersPage() {
       <div className="bg-white rounded-xl border border-[#eef2f6] p-4 mb-6 shadow-sm flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4]" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search by name, email or role..."
             className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-[#f1f5f9] rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3758d5]/10"
             value={searchTerm}
@@ -125,27 +197,27 @@ export default function UsersPage() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+            className="h-10 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white pl-4 pr-10 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/10 focus:border-[#2e4fd5] transition-all shadow-sm"
           >
             <option value="">All Roles</option>
             <option value="SUPER ADMIN">Super Admin</option>
             <option value="MANAGER">Manager</option>
             <option value="SUPPORT">Support</option>
           </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8] pointer-events-none" />
         </div>
         <div className="relative min-w-[160px]">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+            className="h-10 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white pl-4 pr-10 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/10 focus:border-[#2e4fd5] transition-all shadow-sm"
           >
             <option value="">All Statuses</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
             <option value="Suspended">Suspended</option>
           </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8] pointer-events-none" />
         </div>
         <button
           onClick={() => { setSearchTerm(''); setRoleFilter(''); setStatusFilter(''); }}
@@ -170,15 +242,7 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_USERS.filter((user) => {
-              const matchesSearch = !searchTerm ||
-                user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.role.toLowerCase().includes(searchTerm.toLowerCase());
-              const matchesRole = !roleFilter || user.role === roleFilter;
-              const matchesStatus = !statusFilter || user.status === statusFilter;
-              return matchesSearch && matchesRole && matchesStatus;
-            }).map((user) => (
+            {paginatedUsers.map((user) => (
               <tr key={user.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
@@ -214,7 +278,11 @@ export default function UsersPage() {
                         <Pencil className="h-4 w-4 text-[#8a95a5]" /> Edit
                       </button>
                       <div className="my-1 border-t border-[#eef2f7]" />
-                      <button type="button" className="flex items-center gap-2 w-full px-4 py-2.5 text-left font-medium text-[#d12d2d] hover:bg-[#fff5f5]">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(user.id, user.name)}
+                        className="flex items-center gap-2 w-full px-4 py-2.5 text-left font-medium text-[#d12d2d] hover:bg-[#fff5f5]"
+                      >
                         <Trash2 className="h-4 w-4" /> Delete
                       </button>
                     </div>
@@ -227,21 +295,31 @@ export default function UsersPage() {
       </div>
 
       {/* Pagination Section */}
-      <div className="flex items-center justify-between text-[14px] text-[#94a3b4]">
-        <div>Showing 1-{MOCK_USERS.length} of 1,284 users</div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all">
-            <ChevronLeft className="h-4 w-4" />
+      <div className="flex items-center justify-between px-6 py-4 border-t border-[#f1f5f9] bg-white rounded-b-xl">
+        <div className="flex items-center gap-3">
+          <span className="text-[14px] font-medium text-[#64748b]">Total Users: <span className="text-[#2e3a49] font-bold">{filteredUsers.length}</span></span>
+          <span className="text-[14px] font-medium text-[#94a3b4]">|</span>
+          <span className="text-[14px] font-medium text-[#64748b]">Page {page} of {totalPages}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="p-1.5 rounded-lg text-[#94a3b4] hover:bg-[#f1f5f9] hover:text-[#475569] disabled:opacity-30 transition-all"
+          >
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-1">
-            <button className="h-8 w-8 rounded-md bg-[#3758d5] text-white font-semibold shadow-sm">1</button>
-            <button className="h-8 w-8 rounded-md hover:bg-white border border-transparent hover:border-[#eef2f6] text-[#64748b] transition-all">2</button>
-            <button className="h-8 w-8 rounded-md hover:bg-white border border-transparent hover:border-[#eef2f6] text-[#64748b] transition-all">3</button>
-            <span className="px-2">...</span>
-            <button className="h-8 w-8 rounded-md hover:bg-white border border-transparent hover:border-[#eef2f6] text-[#64748b] transition-all">129</button>
+          <div className="flex items-center gap-1 px-2">
+            <span className="h-9 min-w-[36px] flex items-center justify-center rounded-lg bg-[#3758d5] text-white font-bold text-[14px]">
+              {page}
+            </span>
           </div>
-          <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] transition-all">
-            <ChevronRight className="h-4 w-4" />
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page >= totalPages}
+            className="p-1.5 rounded-lg text-[#94a3b4] hover:bg-[#f1f5f9] hover:text-[#475569] disabled:opacity-30 transition-all"
+          >
+            <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </div>

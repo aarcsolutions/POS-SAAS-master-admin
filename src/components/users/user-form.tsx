@@ -1,10 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, X, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/utils/notify';
 import { useFormDraftStore } from '@/store/formDraftStore';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { useUIStore } from '@/store/uiStore';
+import { usersApi } from '@/services/users';
+import { rolesApi } from '@/services/roles';
 
 interface UserFormProps {
   mode: 'create' | 'edit' | 'view';
@@ -23,8 +25,32 @@ interface UserFormProps {
 export const UserForm: React.FC<UserFormProps> = ({ mode, initialData, onClose, onSubmit }) => {
   const { setDraft, getDraft, clearDraft } = useFormDraftStore();
   const { setHasUnsavedChanges } = useUIStore();
+  const [roles, setRoles] = useState<any[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
 
   const FORM_ID = mode === 'create' ? 'user-create' : `user-edit-${initialData?.id || 'new'}`;
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  const fetchRoles = async () => {
+    try {
+      setRolesLoading(true);
+      const data = await rolesApi.getAll() as any;
+      setRoles(data.data?.roles || []);
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+      setRoles([]);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
+  const getRoleIdByTitle = (title: string) => {
+    const role = roles.find(r => r.title === title);
+    return role?.id || '';
+  };
 
   const defaultData = React.useMemo(() => ({
     name: initialData?.name || '',
@@ -33,7 +59,7 @@ export const UserForm: React.FC<UserFormProps> = ({ mode, initialData, onClose, 
     password: '',
     role: initialData?.role || 'MANAGER',
     isActive: initialData?.status === 'Active' || mode === 'create'
-  }), [initialData, mode]);
+  }), [initialData, mode, roles]);
 
   const [formData, setFormData] = useState(() => {
     if (mode !== 'view') {
@@ -65,11 +91,33 @@ export const UserForm: React.FC<UserFormProps> = ({ mode, initialData, onClose, 
     e.preventDefault();
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const roleId = getRoleIdByTitle(formData.role);
+
+      if (mode === 'create') {
+        const payload = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          roleId: roleId
+        };
+        await usersApi.create(payload);
+      } else if (mode === 'edit' && initialData?.id) {
+        const payload = {
+          id: initialData.id,
+          name: formData.name,
+          email: formData.email,
+          roleId: roleId
+        };
+        if (formData.password) {
+          (payload as any).password = formData.password;
+        }
+        await usersApi.update(initialData.id, payload);
+      }
+
       if (onSubmit) onSubmit(formData);
       clearDraft(FORM_ID);
       notifySuccess(
-        mode === 'create' ? 'User Added' : 'User Updated', 
+        mode === 'create' ? 'User Added' : 'User Updated',
         `The profile for "${formData.name}" was saved successfully.`
       );
       onClose();

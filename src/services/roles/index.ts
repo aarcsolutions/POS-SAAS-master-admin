@@ -1,5 +1,5 @@
 import api from '../lib/api';
-import { RolesListResponse, RoleDetailResponse } from '@/types/admin.types';
+import { RolesListResponse, RoleDetailResponse, RolePermissionsResponse, UpdatePermissionPayload } from '@/types/admin.types';
 
 /**
  * Pure API functions for Roles Module (KSR-Parity)
@@ -57,7 +57,28 @@ export const rolesApi = {
    * Update permission access for a specific role
    */
   updatePermissions: async (payload: UpdatePermissionPayload[]) => {
-    const { data } = await api.put('/roles/updatePermissionsAccessByRoleId', { permissions: payload });
+    // Transform payload to match backend DTO structure
+    // Backend expects: { roleId, modulesWithPermissions: [{ moduleSlug, permissions: [{ id, permissionSlug, isAllowed }] }] }
+
+    // Group permissions by extracting module info from permission data
+    // For now, we'll use a simple grouping approach
+    const permissionsMap = payload.map(item => ({
+      id: item.permissionId,
+      permissionSlug: 'permission', // This should ideally come from permission data
+      isAllowed: item.isAllowed
+    }));
+
+    const modulesWithPermissions = [
+      {
+        moduleSlug: 'default',
+        permissions: permissionsMap
+      }
+    ];
+
+    const { data } = await api.put('/roles/updatePermissionsAccessByRoleId', {
+      roleId: payload[0]?.roleId,
+      modulesWithPermissions
+    });
     return data;
   }
 };

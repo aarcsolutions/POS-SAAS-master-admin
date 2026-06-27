@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  ChevronLeft, 
+import React, { useState, useEffect } from 'react';
+import {
+  Plus,
+  Search,
+  Filter,
+  ChevronLeft,
   ChevronRight,
   MoreHorizontal,
   Eye,
@@ -13,6 +13,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { ModuleForm } from '@/components/modules/module-form';
+import { modulesApi } from '@/services/modules';
 
 interface ModuleItem {
   id: string;
@@ -27,23 +28,58 @@ interface ModuleItem {
 
 import { Package, Zap, CreditCard, Globe, Bell, BarChart3, RefreshCcw, Shield } from 'lucide-react';
 
-const MOCK_MODULES: ModuleItem[] = [
-  { id: 'mod_inv_091', name: 'Inventory Core', slug: 'inventory', description: 'Real-time sync.', version: 'v2.4.1', status: 'Active', icon: Package, color: 'bg-blue-50 text-blue-600' },
-  { id: 'mod_loy_112', name: 'Loyalty Rewards', slug: 'loyalty', description: 'Points & rewards.', version: 'v1.8.8', status: 'Active', icon: Zap, color: 'bg-indigo-50 text-indigo-600' },
-  { id: 'mod_pay_205', name: 'Payment Gateway', slug: 'payments', description: 'Multi-currency.', version: 'v3.2.8', status: 'Active', icon: CreditCard, color: 'bg-emerald-50 text-emerald-600' },
-  { id: 'mod_api_552', name: 'Quick-Checkout API', slug: 'checkout-api', description: 'Optimized checkout.', version: 'v3.0.2', status: 'Inactive', icon: Globe, color: 'bg-orange-50 text-orange-600' },
-  { id: 'mod_not_442', name: 'Notification Service', slug: 'notifications', description: 'Alerts & messaging.', version: 'v1.0.5', status: 'Active', icon: Bell, color: 'bg-sky-50 text-sky-600' },
-  { id: 'mod_rep_004', name: 'Advanced Reporting', slug: 'reporting', description: 'Financial BI.', version: 'v2.1.5', status: 'Active', icon: BarChart3, color: 'bg-purple-50 text-purple-600' },
-  { id: 'mod_eng_881', name: 'Reporting Engine', slug: 'report-engine', description: 'Auto-reporting.', version: 'v4.0.0', status: 'Active', icon: RefreshCcw, color: 'bg-rose-50 text-rose-600' },
-  { id: 'mod_sec_109', name: 'OAuth Shield', slug: 'auth-shield', description: 'JWT & Biometrics.', version: 'v1.1.0', status: 'Maintenance', icon: Shield, color: 'bg-slate-50 text-slate-600' },
-];
-
 export default function ModulesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedModule, setSelectedModule] = useState<ModuleItem | null>(null);
+  const [modules, setModules] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    fetchModules();
+  }, []);
+
+  const fetchModules = async () => {
+    try {
+      setLoading(true);
+      const data = await modulesApi.getAll({ page: 1, limit: 100 }) as any;
+      console.log('Modules API Response:', data);
+
+      let modulesArray = [];
+      if (Array.isArray(data)) {
+        modulesArray = data;
+      } else if (Array.isArray(data.data)) {
+        modulesArray = data.data;
+      } else if (data.data?.data && Array.isArray(data.data.data)) {
+        modulesArray = data.data.data;
+      } else if (data.data?.modules && Array.isArray(data.data.modules)) {
+        modulesArray = data.data.modules;
+      }
+
+      const transformedModules = modulesArray.map((module: any) => ({
+        id: module.id,
+        name: module.name,
+        slug: module.slug,
+        description: module.description || '',
+        version: module.version || 'v1.0.0',
+        status: module.is_active ? 'Active' : 'Inactive',
+        icon: Package,
+        color: 'bg-blue-50 text-blue-600'
+      }));
+
+      console.log('Transformed Modules:', transformedModules);
+      setModules(transformedModules);
+    } catch (error) {
+      console.error('Failed to fetch modules:', error);
+      setModules([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenForm = (mode: 'create' | 'edit' | 'view', module?: ModuleItem) => {
     setFormMode(mode);
@@ -51,9 +87,26 @@ export default function ModulesPage() {
     setIsFormOpen(true);
   };
 
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete module "${name}"? This action cannot be undone.`)) {
+      try {
+        await modulesApi.delete(id);
+        await fetchModules();
+      } catch (error) {
+        console.error('Failed to delete module:', error);
+        alert('Failed to delete module. Please try again.');
+      }
+    }
+  };
+
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    fetchModules();
+  };
+
   if (isFormOpen) {
     return (
-      <ModuleForm 
+      <ModuleForm
         mode={formMode}
         initialData={selectedModule ? {
           id: selectedModule.id,
@@ -63,7 +116,7 @@ export default function ModulesPage() {
           status: selectedModule.status,
           version: selectedModule.version
         } : undefined}
-        onClose={() => setIsFormOpen(false)}
+        onClose={handleFormClose}
       />
     );
   }
@@ -132,15 +185,15 @@ export default function ModulesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f1f5f9]">
-            {MOCK_MODULES.filter((module) => {
+            {modules.filter((module) => {
               const matchesSearch = !searchTerm ||
-                module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                module.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                module.status.toLowerCase().includes(searchTerm.toLowerCase());
+                (module.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (module.slug?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (module.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (module.status?.toLowerCase() || '').includes(searchTerm.toLowerCase());
               const matchesStatus = !statusFilter || module.status === statusFilter;
               return matchesSearch && matchesStatus;
-            }).map((module) => (
+            }).slice((page - 1) * itemsPerPage, page * itemsPerPage).map((module) => (
               <tr key={module.id} className="hover:bg-[#fcfdfe] transition-colors group">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
@@ -202,17 +255,35 @@ export default function ModulesPage() {
 
       {/* Pagination Section */}
       <div className="flex items-center justify-between text-[13px] text-[#94a3b4]">
-        <div>Showing 1-{MOCK_MODULES.length} of 28 modules</div>
+        <div>Showing {Math.min(page * itemsPerPage, modules.length)} of {modules.length} modules</div>
         <div className="flex items-center gap-2">
-          <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all">
+          <button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all"
+          >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-1">
-            <button className="h-8 w-8 rounded-md bg-[#3758d5] text-white font-bold shadow-sm">1</button>
-            <button className="h-8 w-8 rounded-md hover:bg-white border border-transparent hover:border-[#eef2f6] text-[#64748b] transition-all">2</button>
-            <button className="h-8 w-8 rounded-md hover:bg-white border border-transparent hover:border-[#eef2f6] text-[#64748b] transition-all">3</button>
+            {Array.from({ length: Math.ceil(modules.length / itemsPerPage) }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={`h-8 w-8 rounded-md font-bold shadow-sm transition-all ${
+                  pageNum === page
+                    ? 'bg-[#3758d5] text-white'
+                    : 'hover:bg-white border border-transparent hover:border-[#eef2f6] text-[#64748b]'
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
           </div>
-          <button className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] transition-all">
+          <button
+            onClick={() => setPage(Math.min(Math.ceil(modules.length / itemsPerPage), page + 1))}
+            disabled={page === Math.ceil(modules.length / itemsPerPage)}
+            className="p-2 border border-[#eef2f6] rounded-md hover:bg-white text-[#64748b] disabled:opacity-50 transition-all"
+          >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

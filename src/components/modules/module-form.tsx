@@ -5,6 +5,7 @@ import { notifySuccess, notifyError } from '@/utils/notify';
 import { useFormDraftStore } from '@/store/formDraftStore';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { useUIStore } from '@/store/uiStore';
+import { modulesApi } from '@/services/modules';
 
 interface ModuleFormProps {
   mode: 'create' | 'edit' | 'view';
@@ -69,16 +70,30 @@ export const ModuleForm: React.FC<ModuleFormProps> = ({ mode, initialData, onClo
     e.preventDefault();
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      if (onSubmit) onSubmit(formData);
-      clearDraft(FORM_ID); // Clear Drafts on Success
+      const payload = {
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description,
+        is_active: formData.isActive
+      };
+
+      console.log('Module Form Payload:', payload);
+
+      if (mode === 'create') {
+        await modulesApi.create(payload);
+      } else if (mode === 'edit' && initialData?.id) {
+        await modulesApi.update(initialData.id, payload);
+      }
+
+      clearDraft(FORM_ID);
       notifySuccess(
-        mode === 'create' ? 'Module Created' : 'Module Updated', 
+        mode === 'create' ? 'Module Created' : 'Module Updated',
         `The module settings for "${formData.name}" have been saved.`
       );
       onClose();
     } catch (err: any) {
-      notifyError('Failed to Save', err.message || 'An error occurred while saving module configuration.');
+      console.error('Module save error:', err);
+      notifyError('Failed to Save', err.response?.data?.message || err.message || 'An error occurred while saving module configuration.');
     } finally {
       setSaving(false);
     }

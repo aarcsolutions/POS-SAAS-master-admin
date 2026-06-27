@@ -1,23 +1,28 @@
-import { apiFetch } from '../api';
-import { ROUTES } from '../../utils/constants';
-import { UsersListResponse, UserItemResponse } from '../../types/admin.types';
+import api from '../lib/api';
 
-export const usersService = {
-  getAll: (page = 1, limit = 10) => 
-    apiFetch<UsersListResponse>(`${ROUTES.ACCESS_CONTROL.USERS}?page=${page}&limit=${limit}`),
-  
-  getById: (id: string) => 
-    apiFetch<UserItemResponse>(`${ROUTES.ACCESS_CONTROL.USERS}/${id}`),
-  
-  create: (data: any) => 
-    apiFetch<UserItemResponse>(ROUTES.ACCESS_CONTROL.USERS, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-  
-  update: (id: string, data: any) => 
-    apiFetch<UserItemResponse>(`${ROUTES.ACCESS_CONTROL.USERS}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    }),
+export const usersApi = {
+  getAll: async (params: { page?: number; limit?: number; search?: string } = {}) => {
+    const { data } = await api.get('/users/getAll', { params });
+    return data;
+  },
+
+  getById: async (id: string) => {
+    const { data } = await api.get(`/users/getById/${id}`);
+    return data;
+  },
+
+  create: async (payload: any) => {
+    const { data } = await api.post('/users/create', payload);
+    return data;
+  },
+
+  update: async (id: string, payload: any) => {
+    const { data } = await api.put('/users/update', { id, ...payload });
+    return data;
+  },
+
+  delete: async (id: string) => {
+    const { data } = await api.delete('/users/delete', { data: { id } });
+    return data;
+  },
 };

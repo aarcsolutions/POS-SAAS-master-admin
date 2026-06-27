@@ -1,14 +1,28 @@
-import { apiFetch } from '../api';
-import { ROUTES } from '../../utils/constants';
-import { PermissionsListResponse, PermissionItemResponse } from '../../types/admin.types';
+import api from '../lib/api';
 
-export const permissionsService = {
-  getAll: (page = 1, limit = 10) => 
-    apiFetch<PermissionsListResponse>(`${ROUTES.ACCESS_CONTROL.PERMISSIONS}?page=${page}&limit=${limit}`),
-  
-  create: (data: any) => 
-    apiFetch<PermissionItemResponse>(ROUTES.ACCESS_CONTROL.PERMISSIONS, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+export const permissionsApi = {
+  getAll: async (params: { page?: number; limit?: number; search?: string } = {}) => {
+    const { data } = await api.get('/permissions/getAll', { params });
+    return data;
+  },
+
+  getById: async (id: string) => {
+    const { data } = await api.get(`/permissions/getById/${id}`);
+    return data;
+  },
+
+  create: async (payload: any) => {
+    const { data } = await api.post('/permissions/create', payload);
+    return data;
+  },
+
+  update: async (id: string, payload: any) => {
+    const { data } = await api.put('/permissions/update', { id, ...payload });
+    return data;
+  },
+
+  delete: async (id: string) => {
+    const { data } = await api.delete('/permissions/delete', { data: { id } });
+    return data;
+  },
 };

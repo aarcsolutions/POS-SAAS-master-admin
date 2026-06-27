@@ -1,14 +1,14 @@
 "use client";
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  PlusSquare, 
-  Calendar, 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronsLeft, 
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  Filter,
+  MoreHorizontal,
+  PlusSquare,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
   ChevronsRight,
   Loader2,
   Trash2,
@@ -19,15 +19,7 @@ import {
 } from 'lucide-react';
 import { TenantWizard } from '@/components/tenants/tenant-wizard';
 import { format } from 'date-fns';
-
-const MOCK_TENANTS = [
-  { id: '1', tenantName: 'Nova Logistics Corp', domain: 'nova-logistics', adminName: 'Marcus Chen', adminEmail: 'm.chen@nova-logistics.com', billingCycle: 'Annual', is_active: true, created_at: '2023-10-12T00:00:00Z' },
-  { id: '2', tenantName: 'Vantage Analytics', domain: 'vantage-analytics', adminName: 'Sarah Blake', adminEmail: 's.blake@vantage.com', billingCycle: 'Monthly', is_active: true, created_at: '2024-01-04T00:00:00Z' },
-  { id: '3', tenantName: 'Peak Solutions Ltd', domain: 'peak-solutions', adminName: 'James Okoro', adminEmail: 'j.okoro@peak.co.uk', billingCycle: 'Quarterly', is_active: true, created_at: '2024-02-28T00:00:00Z' },
-  { id: '4', tenantName: 'Aurora Retail Group', domain: 'aurora-retail', adminName: 'Lisa Park', adminEmail: 'l.park@aurora.com', billingCycle: 'Annual', is_active: false, created_at: '2023-08-15T00:00:00Z' },
-  { id: '5', tenantName: 'Meridian Health', domain: 'meridian-health', adminName: 'Dr. A. Patel', adminEmail: 'admin@meridian.health', billingCycle: 'Monthly', is_active: true, created_at: '2024-03-10T00:00:00Z' },
-  { id: '6', tenantName: 'Summit Finance', domain: 'summit-finance', adminName: 'Robert West', adminEmail: 'r.west@summit.io', billingCycle: 'Annual', is_active: true, created_at: '2023-12-20T00:00:00Z' },
-];
+import { tenantsApi } from '@/services/tenants';
 
 export const TenantList = () => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -38,8 +30,53 @@ export const TenantList = () => {
   const [search, setSearch] = useState('');
   const [billingFilter, setBillingFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const itemsPerPage = 10;
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTenants = MOCK_TENANTS.filter((t) => {
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const fetchTenants = async () => {
+    try {
+      setLoading(true);
+      const data = await tenantsApi.getAll({ page, limit: 100 }) as any;
+      console.log('Tenants API Response:', data);
+
+      let tenantsArray = [];
+      if (Array.isArray(data)) {
+        tenantsArray = data;
+      } else if (Array.isArray(data.data)) {
+        tenantsArray = data.data;
+      } else if (data.data?.data && Array.isArray(data.data.data)) {
+        tenantsArray = data.data.data;
+      } else if (data.data?.tenants && Array.isArray(data.data.tenants)) {
+        tenantsArray = data.data.tenants;
+      }
+
+      const transformedTenants = tenantsArray.map((tenant: any) => ({
+        id: tenant.id,
+        tenantName: tenant.tenantName,
+        domain: tenant.domain,
+        adminName: tenant.adminName,
+        adminEmail: tenant.adminEmail,
+        billingCycle: tenant.billingCycle,
+        is_active: tenant.is_active,
+        created_at: tenant.created_at
+      }));
+
+      console.log('Transformed Tenants:', transformedTenants);
+      setTenants(transformedTenants);
+    } catch (error) {
+      console.error('Failed to fetch tenants:', error);
+      setTenants([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTenants = tenants.filter((t) => {
     const matchesSearch = !search ||
       t.tenantName.toLowerCase().includes(search.toLowerCase()) ||
       t.domain.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,6 +87,12 @@ export const TenantList = () => {
     return matchesSearch && matchesBilling && matchesStatus;
   });
 
+  const totalPages = Math.ceil(filteredTenants.length / itemsPerPage);
+  const paginatedTenants = filteredTenants.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   const handleOpenWizard = (mode: 'create' | 'edit' | 'view', id?: string) => {
     setWizardMode(mode);
     setSelectedTenantId(id);
@@ -58,19 +101,27 @@ export const TenantList = () => {
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete tenant "${name}"? This action cannot be undone.`)) {
-      console.log('Delete tenant:', id);
+      try {
+        await tenantsApi.delete(id);
+        await fetchTenants();
+      } catch (error) {
+        console.error('Failed to delete tenant:', error);
+        alert('Failed to delete tenant. Please try again.');
+      }
     }
+  };
+
+  const handleWizardClose = () => {
+    setIsWizardOpen(false);
+    fetchTenants();
   };
 
   if (isWizardOpen) {
     return (
-      <TenantWizard 
+      <TenantWizard
         mode={wizardMode}
         tenantId={selectedTenantId}
-        onClose={() => {
-          setIsWizardOpen(false);
-          setSelectedTenantId(undefined);
-        }} 
+        onClose={handleWizardClose}
       />
     );
   }
@@ -108,26 +159,26 @@ export const TenantList = () => {
           <select
             value={billingFilter}
             onChange={(e) => setBillingFilter(e.target.value)}
-            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+            className="h-10 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white pl-4 pr-10 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/10 focus:border-[#2e4fd5] transition-all shadow-sm"
           >
             <option value="">All Billing Cycles</option>
             <option value="Monthly">Monthly</option>
             <option value="Quarterly">Quarterly</option>
             <option value="Annual">Annual</option>
           </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8] pointer-events-none" />
         </div>
         <div className="relative min-w-[160px]">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 w-full appearance-none rounded-md border border-[#e7edf5] bg-[#eff4f9] pl-3 pr-8 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/20"
+            className="h-10 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white pl-4 pr-10 text-[13px] text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2e4fd5]/10 focus:border-[#2e4fd5] transition-all shadow-sm"
           >
             <option value="">All Statuses</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b4] pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8] pointer-events-none" />
         </div>
         <button
           onClick={() => { setSearch(''); setBillingFilter(''); setStatusFilter(''); }}
@@ -153,7 +204,7 @@ export const TenantList = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f1f5f9]">
-                {filteredTenants.map((tenant) => (
+                {paginatedTenants.map((tenant) => (
                   <tr key={tenant.id} className="hover:bg-[#f8fafc] transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -219,6 +270,8 @@ export const TenantList = () => {
         <div className="px-6 py-4 border-t border-[#f1f5f9] flex justify-between items-center bg-white mt-auto">
           <div className="flex items-center gap-3">
             <span className="text-[14px] font-medium text-[#64748b]">Total Tenants: <span className="text-[#2e3a49] font-bold">{filteredTenants.length}</span></span>
+            <span className="text-[#14px] font-medium text-[#94a3b4]">|</span>
+            <span className="text-[14px] font-medium text-[#64748b]">Page {page} of {totalPages}</span>
           </div>
 
           <div className="flex items-center gap-6">
@@ -239,7 +292,7 @@ export const TenantList = () => {
 
               <button
                 onClick={() => setPage(p => p + 1)}
-                disabled={page >= Math.ceil(filteredTenants.length / 10)}
+                disabled={page >= totalPages}
                 className="p-1.5 rounded-lg text-[#94a3b4] hover:bg-[#f1f5f9] hover:text-[#475569] disabled:opacity-30 transition-all"
               >
                 <ChevronRight className="h-5 w-5" />
